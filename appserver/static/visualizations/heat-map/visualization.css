@@ -1,0 +1,27 @@
+.container-month {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  grid-template-rows: repeat(5, 1fr);
+  width: fit-content;
+  height: 100%;
+}
+
+.day {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.critical{
+    background-color: #ff0000;
+}
+
+.moderate{
+    background-color: #ff9900;
+}
+
+.normal{
+    background-color: #00ff00;
+}
