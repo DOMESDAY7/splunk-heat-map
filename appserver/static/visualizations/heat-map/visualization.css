@@ -1,7 +1,12 @@
+.global-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
 .container-month {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
-  grid-template-rows: repeat(5, 1fr);
+  grid-template-columns: repeat(8, 1fr);
+  grid-template-rows: repeat(6, 1fr);
   width: fit-content;
   height: 100%;
 }
@@ -14,14 +19,32 @@
   align-items: center;
 }
 
-.critical{
-    background-color: #ff0000;
+.day-name {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: gray;
 }
 
-.moderate{
-    background-color: #ff9900;
+.week {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: gray;
 }
 
-.normal{
-    background-color: #00ff00;
+.critical {
+  background-color: #c05c5c;
+}
+
+.moderate {
+  background-color: #c09a5c;
+}
+
+.normal {
+  background-color: #5cc05c;
 }

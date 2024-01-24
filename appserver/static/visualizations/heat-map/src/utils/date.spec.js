@@ -1,4 +1,4 @@
-const daysInMonth = require('./date');
+const { daysInMonth, getWeeksNb } = require('./date');
 
 describe('daysInMonth', () => {
     test('February in a leap year', () => {
@@ -19,5 +19,23 @@ describe('daysInMonth', () => {
 
     test('Invalid month', () => {
         expect(() => daysInMonth(13, 2021)).toThrow();
+    });
+});
+
+describe('getWeeksNb', () => {
+    test('January', () => {
+        expect(getWeeksNb(1, 2024)).toEqual([1, 2, 3, 4, 5]);
+    });
+
+    test('February', () => {
+        expect(getWeeksNb(2, 2024)).toEqual([5, 6, 7, 8, 9]);
+    });
+
+    test('March', () => {
+        expect(getWeeksNb(3, 2024)).toEqual([9, 10, 11, 12, 13]);
+    });
+
+    test('Invalid month', () => {
+        expect(() => getWeeksNb(13, 2022)).toThrow();
     });
 });
