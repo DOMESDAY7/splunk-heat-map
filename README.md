@@ -11,6 +11,10 @@
 
 You need to modify the package.json file because I set the `%SPLUNK_HOME%` variable with the windows notation. With Unix distrib you need to write `$SPLUNK_HOME`.
 
+## On Windows
+
+It just works.
+
 ## How to run this project ?
 
 1 - Put this project in your %SPLUNK_HOME%/etc/apps.
@@ -19,14 +23,21 @@ You need to modify the package.json file because I set the `%SPLUNK_HOME%` varia
 
 ### Search example
 
+If you want to see the heat map display, go to search and paste the following search into the entry.:
+
 ```spl
-| makeresults count=10 
-| eval threshold_critical=round(random()%100,2), 
-threshold_warning=round(random()%50,2)
-| eval _time=strftime(now()-random()%100000, "%F %T"), 
-      value=round(random()%100,2) 
-| table _time, threshold_critical, threshold_warning, KPI, value
+| makeresults count=50
+| eval random_days = floor(random() % 28), 
+      random_seconds = random() % 86400,   
+      base_time = strptime("2024-12-01", "%Y-%m-%d")
+| eval _time = base_time + (random_days * 86400) + random_seconds
+| eval threshold_critical=round(random() % 100, 2), 
+      threshold_warning=round(random() % 50, 2),
+      value=round(random() % 100, 2) 
+| table _time, threshold_critical, threshold_warning, value
 ```
+
+Go to visualization and select Heat map.
 
 ## How to modify this project ?
 
