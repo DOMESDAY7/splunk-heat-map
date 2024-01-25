@@ -43,65 +43,99 @@ define([
 		},
 
 		updateView: function (data, config) {
-			// Log the data and config for debugging purposes
-			console.log("updateView", data, config);
-		
+
 			// Extract rows from data
 			var dataRows = data.rows;
-		
+
 			// Check if data is empty
-			if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-				return this;
-			}
-		
+			if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
+
+
 			// Clear the div
 			this.$el.empty();
-		
-			// Create a new div and add the class "container-month" to it
+
+			// Create a first div with the class "global-container"
 			let res = document.createElement("div");
-			res.classList.add("container-month");
-		
+			res.classList.add("global-container");
+
+			// Create a new div and add the class "container-month" to it
+			let monthContainer = document.createElement("div");
+			monthContainer.classList.add("container-month");
+
 			// Get the number of days in the month of the first row
-			const { daysInMonth } = require("utils/date");
+			const { daysInMonth, getWeeksNb } = require("utils/date");
+
 			const dateFirstRow = new Date(dataRows[0][0]);
 			const month = dateFirstRow.getMonth();
 			const year = dateFirstRow.getFullYear();
-			const nbDaysInMonth = daysInMonth(month, year);
-		
-			const daysArray = [];
+
+			// Create day names
+			const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+			for (let i = 0; i < dayNames.length; i++) {
+				let dayName = document.createElement("div");
+				dayName.classList.add("day-name");
+				dayName.innerText = dayNames[i];
+				dayName.style.gridRow = 1;
+				dayName.style.gridColumn = i + 2; // Start from column 2 to align with the first day of the week
+				monthContainer.append(dayName);
+			}
+
+			const weeksNb = getWeeksNb(month + 1, year);
+
+			for (let i = 0; i < weeksNb.length; i++) {
+				let week = document.createElement("div");
+				week.classList.add("week");
+				week.innerText = 'W' + weeksNb[i];
+				week.style.gridRow = i + 2;
+				week.style.gridColumn = 1;
+				monthContainer.append(week);
+			}
+
+			// Get the day of the week of the first day of the month
+			const firstDayOfMonth = new Date(year, month, 1);
+			const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; // Convert so that Monday is 0, Sunday is 6
+
+			const nbDaysInMonth = daysInMonth(month + 1, year);
+
 			// Create the days
 			for (let i = 0; i < nbDaysInMonth; i++) {
+
 				let day = document.createElement("div");
 				day.classList.add("day");
 				day.innerText = i + 1;
-				daysArray.push(day);
+
+				// Calculate the position of the day in the grid
+				let column = ((firstDayOfWeek + i) % 7) + 2; // Offset by 2 to align with day names
+				let row = Math.floor((firstDayOfWeek + i) / 7) + 2; // Offset by 2 to start from the second row
+
+				day.style.gridColumn = column;
+				day.style.gridRow = row;
+
+				monthContainer.append(day);
 			}
-		
-			// Append the days to the res div
-			daysArray.forEach(day => res.append(day));
-		
+
 			// Color the days depending on the data
 			dataRows.forEach(row => {
 				const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
-
-				console.log(_time, threshold_critical, threshold_moderate, data)
-
 				const dayNumber = new Date(_time).getDate();
-				const day = res.children[dayNumber - 1];
-				if (!day) return;
-				if (value > threshold_critical) {
-					day.classList.add("critical");
-				} else if (value > threshold_moderate) {
-					day.classList.add("moderate");
-				} else {
-					day.classList.add("normal");
+				const dayElement = monthContainer.querySelector(`.day:nth-child(${dayNumber + dayNames.length})`); // Offset by dayNames.length to account for day name elements
+
+				if (dayElement) {
+					if (value > threshold_critical) {
+						dayElement.classList.add("critical");
+					} else if (value > threshold_moderate) {
+						dayElement.classList.add("moderate");
+					} else {
+						dayElement.classList.add("normal");
+					}
 				}
 			});
-		
-			// Append the res div to the main div
+
+			res.append(monthContainer);
 			this.$el.append(res);
 		}
-		
+
+
 
 	});
 });
