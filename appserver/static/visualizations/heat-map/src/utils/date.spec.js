@@ -35,6 +35,10 @@ describe('getWeeksNb', () => {
         expect(getWeeksNb(3, 2024)).toEqual([9, 10, 11, 12, 13]);
     });
 
+    test('December', () => {
+        expect(getWeeksNb(12, 2024)).toEqual([48, 49, 50, 51, 52, 1]);
+    });
+
     test('Invalid month', () => {
         expect(() => getWeeksNb(13, 2022)).toThrow();
     });

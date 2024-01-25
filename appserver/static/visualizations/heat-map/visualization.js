@@ -89,37 +89,32 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			},
 
 			updateView: function (data, config) {
-				// Log the data and config for debugging purposes
-				console.log("updateView", data, config);
-			
+
 				// Extract rows from data
 				var dataRows = data.rows;
-			
+
 				// Check if data is empty
-				if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-					return this;
-				}
-			
+				if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
+
+
 				// Clear the div
 				this.$el.empty();
-			
+
 				// Create a first div with the class "global-container"
 				let res = document.createElement("div");
 				res.classList.add("global-container");
-			
+
 				// Create a new div and add the class "container-month" to it
 				let monthContainer = document.createElement("div");
 				monthContainer.classList.add("container-month");
-			
+
 				// Get the number of days in the month of the first row
 				const { daysInMonth, getWeeksNb } = __webpack_require__(6);
-			
+
 				const dateFirstRow = new Date(dataRows[0][0]);
 				const month = dateFirstRow.getMonth();
 				const year = dateFirstRow.getFullYear();
-			
-				const nbDaysInMonth = daysInMonth(month + 1, year);
-			
+
 				// Create day names
 				const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 				for (let i = 0; i < dayNames.length; i++) {
@@ -141,33 +136,36 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					week.style.gridColumn = 1;
 					monthContainer.append(week);
 				}
-			
+
 				// Get the day of the week of the first day of the month
 				const firstDayOfMonth = new Date(year, month, 1);
 				const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; // Convert so that Monday is 0, Sunday is 6
-			
+
+				const nbDaysInMonth = daysInMonth(month + 1, year);
+
 				// Create the days
 				for (let i = 0; i < nbDaysInMonth; i++) {
+
 					let day = document.createElement("div");
 					day.classList.add("day");
 					day.innerText = i + 1;
-			
+
 					// Calculate the position of the day in the grid
 					let column = ((firstDayOfWeek + i) % 7) + 2; // Offset by 2 to align with day names
 					let row = Math.floor((firstDayOfWeek + i) / 7) + 2; // Offset by 2 to start from the second row
-			
+
 					day.style.gridColumn = column;
 					day.style.gridRow = row;
-			
+
 					monthContainer.append(day);
 				}
-			
+
 				// Color the days depending on the data
 				dataRows.forEach(row => {
 					const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
 					const dayNumber = new Date(_time).getDate();
 					const dayElement = monthContainer.querySelector(`.day:nth-child(${dayNumber + dayNames.length})`); // Offset by dayNames.length to account for day name elements
-			
+
 					if (dayElement) {
 						if (value > threshold_critical) {
 							dayElement.classList.add("critical");
@@ -178,11 +176,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 						}
 					}
 				});
-			
+
 				res.append(monthContainer);
 				this.$el.append(res);
 			}
-			
+
 
 
 		});
@@ -21656,18 +21654,30 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    const lastDayOfMonth = new Date(year, month - 1, nbDaysInMonth);
 
 	    let firstWeekNumber = getWeekNumber(firstDayOfMonth);
-	    const lastWeekNumber = getWeekNumber(lastDayOfMonth);
+	    let lastWeekNumber = getWeekNumber(lastDayOfMonth);
+
+	    // Handling the year transition
+	    if (lastDayOfMonth.getMonth() === 11 && lastWeekNumber === 1) {
+	        lastWeekNumber = 53; // Set to a high number to include week 1 of next year
+	    }
 
 	    const weeksNb = [];
-	    let currentWeekNumber = firstWeekNumber;
-	    while (currentWeekNumber <= lastWeekNumber) {
-	        weeksNb.push(currentWeekNumber);
-	        currentWeekNumber = firstDayOfMonth.getDay() === 0 && currentWeekNumber === firstWeekNumber ? currentWeekNumber + 2 : currentWeekNumber + 1;
+	    let currentWeek = firstWeekNumber;
+	    while (currentWeek <= lastWeekNumber) {
+	        weeksNb.push(currentWeek === 53 ? 1 : currentWeek); // Reset to 1 for the new year
+
 	        firstDayOfMonth.setDate(firstDayOfMonth.getDate() + 7);
+	        currentWeek = getWeekNumber(firstDayOfMonth);
+
+	        // Handling the reset to week 1 in the new year
+	        if (firstDayOfMonth.getFullYear() > year && currentWeek > 1) {
+	            break;
+	        }
 	    }
 
 	    return weeksNb;
 	};
+
 
 	// Helper function to get the ISO week number
 	function getWeekNumber(d) {

@@ -43,16 +43,13 @@ define([
 		},
 
 		updateView: function (data, config) {
-			// Log the data and config for debugging purposes
-			console.log("updateView", data, config);
 
 			// Extract rows from data
 			var dataRows = data.rows;
 
 			// Check if data is empty
-			if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) {
-				return this;
-			}
+			if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
+
 
 			// Clear the div
 			this.$el.empty();
@@ -71,8 +68,6 @@ define([
 			const dateFirstRow = new Date(dataRows[0][0]);
 			const month = dateFirstRow.getMonth();
 			const year = dateFirstRow.getFullYear();
-
-			const nbDaysInMonth = daysInMonth(month + 1, year);
 
 			// Create day names
 			const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
@@ -100,8 +95,11 @@ define([
 			const firstDayOfMonth = new Date(year, month, 1);
 			const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; // Convert so that Monday is 0, Sunday is 6
 
+			const nbDaysInMonth = daysInMonth(month + 1, year);
+
 			// Create the days
 			for (let i = 0; i < nbDaysInMonth; i++) {
+
 				let day = document.createElement("div");
 				day.classList.add("day");
 				day.innerText = i + 1;

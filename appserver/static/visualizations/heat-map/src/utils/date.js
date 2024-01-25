@@ -21,18 +21,30 @@ const getWeeksNb = (month, year) => {
     const lastDayOfMonth = new Date(year, month - 1, nbDaysInMonth);
 
     let firstWeekNumber = getWeekNumber(firstDayOfMonth);
-    const lastWeekNumber = getWeekNumber(lastDayOfMonth);
+    let lastWeekNumber = getWeekNumber(lastDayOfMonth);
+
+    // Handling the year transition
+    if (lastDayOfMonth.getMonth() === 11 && lastWeekNumber === 1) {
+        lastWeekNumber = 53; // Set to a high number to include week 1 of next year
+    }
 
     const weeksNb = [];
-    let currentWeekNumber = firstWeekNumber;
-    while (currentWeekNumber <= lastWeekNumber) {
-        weeksNb.push(currentWeekNumber);
-        currentWeekNumber = firstDayOfMonth.getDay() === 0 && currentWeekNumber === firstWeekNumber ? currentWeekNumber + 2 : currentWeekNumber + 1;
+    let currentWeek = firstWeekNumber;
+    while (currentWeek <= lastWeekNumber) {
+        weeksNb.push(currentWeek === 53 ? 1 : currentWeek); // Reset to 1 for the new year
+
         firstDayOfMonth.setDate(firstDayOfMonth.getDate() + 7);
+        currentWeek = getWeekNumber(firstDayOfMonth);
+
+        // Handling the reset to week 1 in the new year
+        if (firstDayOfMonth.getFullYear() > year && currentWeek > 1) {
+            break;
+        }
     }
 
     return weeksNb;
 };
+
 
 // Helper function to get the ISO week number
 function getWeekNumber(d) {
