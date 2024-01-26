@@ -97,3 +97,7 @@ and
 ```bash
 icacls "heat-map" /remove:g *S-1-1-0 *S-1-5-32-545 /T
 ```
+
+## Usefull link
+
+[Formatter API ref](https://docs.splunk.com/Documentation/SplunkCloud/9.1.2308/AdvancedDev/CustomVizFormatterApiRef)

@@ -3,8 +3,7 @@ define([
 	"underscore",
 	"api/SplunkVisualizationBase",
 	"api/SplunkVisualizationUtils",
-	"d3",
-], function ($, _, SplunkVisualizationBase, SplunkVisualizationUtils, d3) {
+], function ($, _, SplunkVisualizationBase, SplunkVisualizationUtils) {
 	return SplunkVisualizationBase.extend({
 		initialize: function () {
 			this.chunk = 50000;
@@ -114,11 +113,15 @@ define([
 				monthContainer.append(day);
 			}
 
+			let averagePerMonth = 0
+
 			// Color the days depending on the data
 			dataRows.forEach(row => {
 				const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
 				const dayNumber = new Date(_time).getDate();
 				const dayElement = monthContainer.querySelector(`.day:nth-child(${dayNumber + dayNames.length})`); // Offset by dayNames.length to account for day name elements
+
+				averagePerMonth += value;
 
 				if (dayElement) {
 					if (value > threshold_critical) {
@@ -130,8 +133,27 @@ define([
 					}
 				}
 			});
+			
+			averagePerMonth /= dataRows.length;
+			// create a div for the average value with the class "average"
+			let average = document.createElement("div");
+			average.classList.add("average");
 
+			// set the color depending on the average value
+			if (averagePerMonth > 50) {
+				average.classList.add("critical");
+			} else if (averagePerMonth > 30) {
+				average.classList.add("moderate");
+			} else {
+				average.classList.add("normal");
+			}
+
+			average.innerText = averagePerMonth.toFixed(2);
+			
+			// Append 
 			res.append(monthContainer);
+			
+			res.append(average);
 			this.$el.append(res);
 		}
 
