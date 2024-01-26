@@ -47,3 +47,53 @@ To customize, bring new idea you just have to modify the vizualisation_source.js
 
 `yarn test` : to start test file (all the files *.spec.js)
 `yarn build` : important to see your change
+
+# Package correctly the app
+
+Source : [Package an app](https://dev.splunk.com/enterprise/tutorials/module_validate/packageapp)
+
+You need to install few more things bundle in one pip package available with this command :
+
+ ```bash
+ pip install splunk-packaging-toolkit-1.0.1.tar.gz
+ ```
+
+go to the apps directory 
+
+```bash
+cd $SPLUNK_HOME/etc/apps
+```
+
+generate the manifest with the app
+
+```bash
+slim generate-manifest calendar-heat-map -o calendar-heat-map/app.manifest
+```
+
+If you have a `[WARNING]` tag tou need to add the stanza `[package]` to the /calendar-heat-map/default/app.conf file normaly it's already done. If not here his wath you should paste in the app.conf : 
+
+```bash
+[package]
+id = devtutorial
+```
+
+Regenerate the manifest if you add a Warning.
+
+Now, to use the package in your Splunk cloud instance you need to do few more things :
+
+- delete the appserver/static/visualizations/heat-map/node_modules
+- delete all git file and director, here is a list :
+      - .git
+      - .gitignore
+      - .gitkeep
+- configure the rights for each directory like :
+
+```bash
+icacls "heat-map" /grant "userName:(R,W)" /T
+```
+
+and
+
+```bash
+icacls "heat-map" /remove:g *S-1-1-0 *S-1-5-32-545 /T
+```
