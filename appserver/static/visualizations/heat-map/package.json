@@ -1,5 +1,5 @@
 {
-  "name": "standin",
+  "name": "calendar-heatmap",
   "version": "1.0.0",
   "description": "Visualization app template. Put a description here.",
   "main": "visualization.js",
