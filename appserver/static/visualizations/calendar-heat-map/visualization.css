@@ -14,6 +14,7 @@
   writing-mode: vertical-rl;
   text-orientation: mixed;
   border: 1px solid gray;
+  grid-area: average;
 }
 
 .container-month {
@@ -22,6 +23,7 @@
   grid-template-rows: repeat(6, 1fr);
   width: fit-content;
   height: 100%;
+  grid-area: monthGrid;
 }
 
 .day {
@@ -65,4 +67,22 @@
 .normal {
   background-color: #5cc05c;
   color: white;
+}
+.month-name {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-transform: capitalize;
+  justify-self: center;
+  align-self: center;
+  width: 100%;
+}
+
+.gloabl-container-month {
+  display: grid;
+  grid-template-areas:
+    "monthName monthName monthName"
+    "monthGrid monthGrid average"
+    "monthGrid monthGrid average";
+  gap: 1rem;
 }
