@@ -12,6 +12,7 @@
   "author": "Splunk",
   "license": "MIT",
   "devDependencies": {
+    "jsdom": "^24.0.0",
     "webpack": "^1.12.6"
   },
   "dependencies": {

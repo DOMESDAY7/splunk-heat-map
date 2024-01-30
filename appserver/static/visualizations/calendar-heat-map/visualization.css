@@ -1,13 +1,15 @@
 .global-container {
   display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: start;
+  align-items: start;
+  margin: auto;
+  gap: 2rem;
 }
 
 .average {
-  height: 15rem;
-  width: 3rem;
+  height: 100%;
+  width: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -15,25 +17,28 @@
   text-orientation: mixed;
   border: 1px solid gray;
   grid-area: average;
+  justify-self: center;
+  align-self: center;
 }
 
 .container-month {
   display: grid;
-  grid-template-columns: repeat(8, 1fr);
-  grid-template-rows: repeat(6, 1fr);
+  grid-template-columns: repeat(8, 1.75rem);
+  grid-template-rows: repeat(6, 1.75rem);
   width: fit-content;
   height: 100%;
   grid-area: monthGrid;
 }
 
 .day {
-  width: 2rem;
-  height: 2rem;
+  width: 1.75rem;
+  height: 1.75rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  border: 1px solid gray;
+  border: 0.5px solid gray;
   color: gray;
+  /* aspect-ratio: 1/1; */
 }
 
 .day-name {
@@ -42,7 +47,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: gray;
+  font-size: 0.5rem;
 }
 
 .week {
@@ -51,7 +56,7 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  color: gray;
+  font-size: 0.5rem;
 }
 
 .critical {
@@ -71,18 +76,20 @@
 .month-name {
   display: flex;
   justify-content: center;
-  align-items: center;
+  align-items: end;
   text-transform: capitalize;
   justify-self: center;
   align-self: center;
   width: 100%;
+  margin: 0;
+  grid-area: monthName;
 }
 
-.gloabl-container-month {
+.global-container-month {
   display: grid;
   grid-template-areas:
     "monthName monthName monthName"
     "monthGrid monthGrid average"
     "monthGrid monthGrid average";
-  gap: 1rem;
+  gap: 0 1rem;
 }

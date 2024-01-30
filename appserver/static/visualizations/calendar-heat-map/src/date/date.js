@@ -55,8 +55,10 @@ function getWeekNumber(d) {
 }
 
 
+const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+
 module.exports = {
     daysInMonth,
     getWeeksNb,
-    
+    dayNames    
 }
