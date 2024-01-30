@@ -14,7 +14,7 @@ describe('rowDataToTabMonth', () => {
             ['2022-01-01', '10', '20', '30']
         ];
         const result = rowDataToTabMonth(rowData);
-        expect(result['122'][0]).toEqual({
+        expect(result['1-2022'][0]).toEqual({
             _time: '2022-01-01',
             threshold_critical: 10,
             threshold_moderate: 20,
@@ -30,7 +30,7 @@ describe('rowDataToTabMonth', () => {
         ];
         const result = rowDataToTabMonth(rowData);
 
-        expect(result['122']).toHaveLength(2);
+        expect(result['1-2022']).toHaveLength(2);
     });
 
     test('should handle empty input', () => {
@@ -137,3 +137,9 @@ describe('createDaysName', () => {
         });
     });
 });
+
+
+// describe("create two similar month but different year", () => {
+//     test("")
+
+// }),

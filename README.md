@@ -7,7 +7,7 @@
 ✅ yarn install
 ✅ environment SPLUNK_HOME set
 
-## On *inx
+## On \*inx
 
 You need to modify the package.json file because I set the `%SPLUNK_HOME%` variable with the windows notation. With Unix distrib you need to write `$SPLUNK_HOME`.
 
@@ -23,21 +23,36 @@ It just works.
 
 ### Search example
 
-If you want to see the heat map display, go to search and paste the following search into the entry.:
+If you want to see the heat map display, go to search and paste the following search into the entry:
 
 ```spl
 | makeresults count=50
-| eval random_days = floor(random() % 28), 
-      random_seconds = random() % 86400,   
+| eval random_days = floor(random() % 28),
+      random_seconds = random() % 86400,
       base_time = strptime("2024-12-01", "%Y-%m-%d")
 | eval _time = base_time + (random_days * 86400) + random_seconds
-| eval threshold_critical=round(random() % 100, 2), 
+| eval threshold_critical=round(random() % 100, 2),
       threshold_warning=round(random() % 50, 2),
-      value=round(random() % 100, 2) 
+      value=round(random() % 100, 2)
 | table _time, threshold_critical, threshold_warning, value
 ```
 
 Go to visualization and select Heat map.
+
+If you want to test the multimonth visualization you just have to do the same things with this search:
+
+```spl
+| makeresults count=200
+| eval random_month = floor(random() % 12),
+      random_days = floor(random() % 28),
+      random_seconds = random() % 86400,
+      base_time = strptime("2024-02-01", "%Y-%m-%d")
+| eval _time = base_time + (random_month * 2629743) + (random_days * 86400) + random_seconds
+| eval threshold_critical=round(random() % 100, 2),
+      threshold_warning=round(random() % 50, 2),
+      value=round(random() % 100, 2)
+| table _time, threshold_critical, threshold_warning, value
+```
 
 ## How to modify this project ?
 
@@ -45,7 +60,7 @@ To customize, bring new idea you just have to modify the vizualisation_source.js
 
 ## Command
 
-`yarn test` : to start test file (all the files *.spec.js)
+`yarn test` : to start test file (all the files \*.spec.js)
 `yarn build` : important to see your change
 
 # Package correctly the app
@@ -54,11 +69,11 @@ Source : [Package an app](https://dev.splunk.com/enterprise/tutorials/module_val
 
 You need to install few more things bundle in one pip package available with this command :
 
- ```bash
- pip install splunk-packaging-toolkit-1.0.1.tar.gz
- ```
+```bash
+pip install splunk-packaging-toolkit-1.0.1.tar.gz
+```
 
-go to the apps directory 
+go to the apps directory
 
 ```bash
 cd $SPLUNK_HOME/etc/apps
@@ -70,7 +85,7 @@ generate the manifest with the app
 slim generate-manifest calendar-heat-map -o calendar-heat-map/app.manifest
 ```
 
-If you have a `[WARNING]` tag tou need to add the stanza `[package]` to the /calendar-heat-map/default/app.conf file normaly it's already done. If not here his wath you should paste in the app.conf : 
+If you have a `[WARNING]` tag tou need to add the stanza `[package]` to the /calendar-heat-map/default/app.conf file normaly it's already done. If not here his wath you should paste in the app.conf :
 
 ```bash
 [package]
@@ -82,10 +97,7 @@ Regenerate the manifest if you add a Warning.
 Now, to use the package in your Splunk cloud instance you need to do few more things :
 
 - delete the appserver/static/visualizations/heat-map/node_modules
-- delete all git file and director, here is a list :
-      - .git
-      - .gitignore
-      - .gitkeep
+- delete all git file and director, here is a list : - .git - .gitignore - .gitkeep
 - configure the rights for each directory like :
 
 ```bash
