@@ -1,10 +1,10 @@
 /**
  * 
  * @param {Array[]} rowData data from splunk : _time, threshold_critical, threshold_moderate, value
- * @returns {Object} tabMonth : {month : [{_time, threshold_critical, threshold_moderate, value}]}
+ * @returns {Map} tabMonth : {month : [{_time, threshold_critical, threshold_moderate, value}]}
  */
 const rowDataToTabMonth = (rowData) => {
-    const tabMonth = {};
+    const tabMonth = new Map();
     for (const row of rowData) {
         if (row.length < 4) throw Error("Missing fields");
         const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
@@ -14,12 +14,13 @@ const rowDataToTabMonth = (rowData) => {
 
         const propertyName = `${dateRow.getMonth() + 1}-${dateRow.getYear() + 1900}`;
 
-        if (propertyName in tabMonth) {
-            tabMonth[propertyName].push(obj);
+        if (tabMonth.has(propertyName)) {
+            tabMonth.get(propertyName).push(obj);
         } else {
-            tabMonth[propertyName] = [obj];
+            tabMonth.set(propertyName, [obj]);
         }
     }
+
     return tabMonth;
 }
 
@@ -43,6 +44,7 @@ function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
 
         day.style.gridColumn = column;
         day.style.gridRow = row;
+        day.setAttribute("data-day", i + 1);
 
         monthContainer.append(day);
     }
@@ -66,9 +68,50 @@ function createDaysName(dayNames, monthContainer) {
     }
 }
 
+/**
+ * 
+ * @param {Map} tabMonth 
+ * @param {string} month 
+ * @param {HTMLDivElement} monthContainer 
+ * @returns boolean
+ */
+function colorDays(tabMonth, month, monthContainer) {
+    try {
+        if (tabMonth.has(month)) {
+            const daysMap = new Map(tabMonth.get(month).map((item) => [`[data-day='${new Date(item._time).getDate()}']`, item]));
+
+            for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
+                const dayElement = monthContainer.querySelector(selector);
+
+                if (dayElement) {
+                    if (value > 0 && value <= threshold_critical) {
+                        dayElement.classList.add("critical");
+                    } else if (value > threshold_critical && value <= threshold_moderate) {
+                        dayElement.classList.add("moderate");
+                    } else {
+                        dayElement.classList.add("normal");
+                    }
+                } else {
+                    throw Error("dayElement is undefined");
+                }
+            }
+            return true;
+        } else {
+            throw Error("Month not found in tabMonth");
+        }
+    } catch (e) {
+        return false;
+    }
+}
+
+
+
+
+
 
 module.exports = {
     rowDataToTabMonth,
     createDays,
-    createDaysName
+    createDaysName,
+    colorDays
 }

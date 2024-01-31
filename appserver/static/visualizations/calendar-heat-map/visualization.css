@@ -1,3 +1,8 @@
+:root {
+  --critical-color: #c05c5c;
+  --moderate-color: #c09a5c;
+  --normal-color: #5cc05c;
+}
 .global-container {
   display: flex;
   flex-wrap: wrap;
@@ -8,7 +13,7 @@
 }
 
 .average {
-  height: 100%;
+  height: 12rem;
   width: 2rem;
   display: flex;
   justify-content: center;
@@ -60,19 +65,20 @@
 }
 
 .critical {
-  background-color: #c05c5c;
+  background-color: var(--critical-color);
   color: white;
 }
 
 .moderate {
-  background-color: #c09a5c;
+  background-color: var(--moderate-color);
   color: white;
 }
 
 .normal {
-  background-color: #5cc05c;
+  background-color: var(--normal-color);
   color: white;
 }
+
 .month-name {
   display: flex;
   justify-content: center;

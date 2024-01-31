@@ -42,7 +42,7 @@ define([
 		},
 
 		updateView: function (data, config) {
-			const { rowDataToTabMonth, createDays, createDaysName } = require("./utils/helper");
+			const { rowDataToTabMonth, createDays, createDaysName, colorDays } = require("./utils/helper");
 			const { daysInMonth, getWeeksNb, dayNames } = require("date/date");
 
 			// Clear the display div
@@ -62,13 +62,13 @@ define([
 			res.classList.add("global-container");
 
 			// Get the number of days in the month of the first row
-			for (const month in tabMonth) {
-				if (!tabMonth[month]) continue;
+			for (const [month, value] of tabMonth) {
+				if (!value) continue;
 
 				// Create a "p" element with the class "month-name" and the name of the month 
 				let monthName = document.createElement("p");
 				monthName.classList.add("month-name");
-				monthName.innerText = new Date(tabMonth[month][0]._time).toLocaleString("default", { month: "long", year: "numeric" });
+				monthName.innerText = new Date(value[0]._time).toLocaleString("default", { month: "long", year: "numeric" });
 
 				let globalContainerMonth = document.createElement("div");
 				globalContainerMonth.classList.add("global-container-month");
@@ -79,7 +79,7 @@ define([
 				let monthContainer = document.createElement("div");
 				monthContainer.classList.add("container-month");
 
-				const dateFirstRow = new Date(tabMonth[month][0]._time);
+				const dateFirstRow = new Date(value[0]._time);
 				const monthRow = dateFirstRow.getMonth();
 				const yearRow = dateFirstRow.getFullYear();
 
@@ -100,34 +100,16 @@ define([
 				const firstDayOfMonth = new Date(yearRow, monthRow, 1);
 
 				// Convert so that Monday is 0, Sunday is 6
-				const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; 
+				const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7;
 
 				const nbDaysInMonth = daysInMonth(monthRow + 1, yearRow);
 
 				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
 
-				let averagePerMonth = 0
+				colorDays(tabMonth, month, monthContainer, dayNames);
 
-				// Color the days depending on the data
-				tabMonth[month].forEach(({ _time, value, threshold_critical, threshold_moderate }) => {
+				const averagePerMonth = value.reduce((acc, { value }) => acc + value, 0) / value.length;
 
-					const dayNumber = new Date(_time).getDate();
-					const dayElement = monthContainer.querySelector(`.day:nth-child(${dayNumber + dayNames.length})`); // Offset by dayNames.length to account for day name elements
-
-					averagePerMonth += value;
-
-					if (dayElement) {
-						if (value > threshold_critical) {
-							dayElement.classList.add("critical");
-						} else if (value > threshold_moderate) {
-							dayElement.classList.add("moderate");
-						} else {
-							dayElement.classList.add("normal");
-						}
-					}
-				});
-
-				averagePerMonth /= dataRows.length;
 				// create a div for the average value with the class "average"
 				let average = document.createElement("div");
 				average.classList.add("average");

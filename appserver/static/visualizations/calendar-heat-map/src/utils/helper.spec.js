@@ -1,6 +1,6 @@
-const { rowDataToTabMonth, createDays, createDaysName } = require('./helper');
+const { rowDataToTabMonth, createDays, createDaysName, colorDays } = require('./helper');
 const { JSDOM } = require('jsdom');
-
+const { daysInMonth } = require('../date/date');
 describe('rowDataToTabMonth', () => {
     test('should throw an error if row length is less than 4', () => {
         const rowData = [
@@ -14,7 +14,7 @@ describe('rowDataToTabMonth', () => {
             ['2022-01-01', '10', '20', '30']
         ];
         const result = rowDataToTabMonth(rowData);
-        expect(result['1-2022'][0]).toEqual({
+        expect(result.get('1-2022')[0]).toEqual({
             _time: '2022-01-01',
             threshold_critical: 10,
             threshold_moderate: 20,
@@ -30,13 +30,13 @@ describe('rowDataToTabMonth', () => {
         ];
         const result = rowDataToTabMonth(rowData);
 
-        expect(result['1-2022']).toHaveLength(2);
+        expect(result.get('1-2022')).toHaveLength(2);
     });
 
     test('should handle empty input', () => {
         const rowData = [];
         const result = rowDataToTabMonth(rowData);
-        expect(result).toEqual({});
+        expect(result).toEqual(new Map());
     });
 });
 
@@ -62,8 +62,6 @@ describe('createDays', () => {
     test('should correctly set the text of each day', () => {
         createDays(30, 1, container);
         const days = container.querySelectorAll('.day');
-        console.log(container.outerHTML); // Log the outer HTML of the container
-        console.log(days.length); // Log the number of elements selected
         days.forEach((day, i) => {
             expect(day.textContent).toBe((i + 1).toString());
         });
@@ -139,7 +137,96 @@ describe('createDaysName', () => {
 });
 
 
-// describe("create two similar month but different year", () => {
-//     test("")
+describe("rowDataToTabMonth + createDays + createDaysName", () => {
+    let container;
 
-// }),
+    beforeEach(() => {
+        const dom = new JSDOM('<html><body></body></html>');
+        global.document = dom.window.document;
+        container = document.createElement('div');
+    });
+
+    test("create two month but not the same year", () => {
+        const rowData = [
+            ['2024-01-01', '10', '20', '30'],
+            ['2023-01-02', '40', '50', '60'],
+        ];
+        const result = rowDataToTabMonth(rowData);
+
+        for (const month in result) {
+
+            const dateFirstRow = new Date(result[month][0]._time);
+            const monthRow = dateFirstRow.getMonth();
+            const yearRow = dateFirstRow.getFullYear();
+
+            // Get the day of the week of the first day of the month
+            const firstDayOfMonth = new Date(yearRow, monthRow, 1);
+
+            // Convert so that Monday is 0, Sunday is 6
+            const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7;
+
+            const nbDaysInMonth = daysInMonth(monthRow + 1, yearRow);
+
+            let div = document.createElement("div");
+            div.classList.add("container-month");
+            container.append(div);
+
+            createDays(nbDaysInMonth, firstDayOfWeek, div);
+        }
+
+        const days = container.querySelectorAll('.day');
+        expect(days.length).toBe(31 * 2);
+
+        const containerMonth = container.querySelectorAll('.container-month');
+        expect(containerMonth.length).toBe(2);
+    });
+
+});
+
+describe('colorDays', () => {
+    let container;
+    let tabMonth;
+    let dayNames;
+
+    beforeEach(() => {
+        const dom = new JSDOM('<html><body></body></html>');
+        global.document = dom.window.document;
+        container = document.createElement('div');
+        dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        tabMonth = {
+            '1-2022': [
+                { _time: '2022-01-01', value: 99, threshold_critical: 95, threshold_moderate: 98 },
+                { _time: '2022-01-02', value: 97, threshold_critical: 95, threshold_moderate: 98 },
+                { _time: '2022-01-03', value: 5, threshold_critical: 95, threshold_moderate: 98 },
+                { _time: '2022-01-04', value: 100, threshold_critical: 95, threshold_moderate: 98 },
+                { _time: '2022-01-05', value: 98, threshold_critical: 95, threshold_moderate: 98 },
+            ]
+        };
+        createDays(31, 1, container);
+        createDaysName(dayNames, container);
+    });
+
+    afterEach(() => {
+        delete global.document;
+    });
+
+    test('should correctly color days based on thresholds', () => {
+        const result = colorDays({ tabMonth, month: '1-2022', monthContainer: container, dayNames });
+        expect(result).toBe(true);
+
+        const dayElements = container.querySelectorAll('.day');
+
+
+        expect(dayElements[0].classList.contains('normal')).toBe(true);
+        expect(dayElements[1].classList.contains('moderate')).toBe(true);
+        expect(dayElements[2].classList.contains('critical')).toBe(true);
+        expect(dayElements[3].classList.contains('normal')).toBe(true);
+        expect(dayElements[4].classList.contains('moderate')).toBe(true);
+    });
+
+    test('should return false and not throw an error if a day element is not found', () => {
+        tabMonth['1-2022'].push({ _time: '2022-01-32', value: 10, threshold_critical: 20, threshold_moderate: 15 });
+        const result = colorDays({ tabMonth, month: '1-2022', monthContainer: container, dayNames });
+        expect(result).toBe(false);
+    });
+});

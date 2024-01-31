@@ -88,7 +88,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			},
 
 			updateView: function (data, config) {
-				const { rowDataToTabMonth, createDays, createDaysName } = __webpack_require__(5);
+				const { rowDataToTabMonth, createDays, createDaysName, colorDays } = __webpack_require__(5);
 				const { daysInMonth, getWeeksNb, dayNames } = __webpack_require__(6);
 
 				// Clear the display div
@@ -146,34 +146,16 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					const firstDayOfMonth = new Date(yearRow, monthRow, 1);
 
 					// Convert so that Monday is 0, Sunday is 6
-					const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; 
+					const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7;
 
 					const nbDaysInMonth = daysInMonth(monthRow + 1, yearRow);
 
 					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
 
-					let averagePerMonth = 0
+					colorDays({ tabMonth, month, monthContainer, dayNames });
 
-					// Color the days depending on the data
-					tabMonth[month].forEach(({ _time, value, threshold_critical, threshold_moderate }) => {
+					const averagePerMonth = tabMonth[month].reduce((acc, { value }) => acc + value, 0) / tabMonth[month].length;
 
-						const dayNumber = new Date(_time).getDate();
-						const dayElement = monthContainer.querySelector(`.day:nth-child(${dayNumber + dayNames.length})`); // Offset by dayNames.length to account for day name elements
-
-						averagePerMonth += value;
-
-						if (dayElement) {
-							if (value > threshold_critical) {
-								dayElement.classList.add("critical");
-							} else if (value > threshold_moderate) {
-								dayElement.classList.add("moderate");
-							} else {
-								dayElement.classList.add("normal");
-							}
-						}
-					});
-
-					averagePerMonth /= dataRows.length;
 					// create a div for the average value with the class "average"
 					let average = document.createElement("div");
 					average.classList.add("average");
@@ -12159,11 +12141,44 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    }
 	}
 
+	function colorDays({ tabMonth, month, monthContainer, dayNames }) {
+	    try {
+	        // Récupérer tous les éléments de jour une seule fois
+	        const daysElements = monthContainer.querySelectorAll('.day');
+
+	        for (const { _time, value, threshold_critical, threshold_moderate } of tabMonth[month]) {
+	            const dayNumber = new Date(_time).getDate();
+
+	            // Récupérer l'élément du jour correspondant
+	            const dayElement = daysElements[dayNumber - 1]; // -1 car les indices commencent à 0
+
+	            if (dayElement) {
+	                if (value > 0 && value <= threshold_critical) {
+	                    dayElement.classList.add("critical");
+	                } else if (value > threshold_critical && value <= threshold_moderate) {
+	                    dayElement.classList.add("moderate");
+	                } else {
+	                    dayElement.classList.add("normal");
+	                }
+	            } else {
+	                throw Error("dayElement is undefined");
+	            }
+	        }
+	        return true;
+	    } catch (e) {
+	        return false;
+	    }
+	}
+
+
+
+
 
 	module.exports = {
 	    rowDataToTabMonth,
 	    createDays,
-	    createDaysName
+	    createDaysName,
+	    colorDays
 	}
 
 /***/ }),
