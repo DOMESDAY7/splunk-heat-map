@@ -46,7 +46,7 @@ function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
         day.style.gridColumn = moduloValues[i];
         day.style.gridRow = floorValues[i];
         day.setAttribute("data-day", i + 1);
-
+        day.setAttribute("data-tooltip", "test")
         fragment.appendChild(day);
     }
 

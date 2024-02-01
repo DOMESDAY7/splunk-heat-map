@@ -101,7 +101,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
 
 				const tabMonth = rowDataToMapMonth(dataRows);
-				console.log(tabMonth)
 
 				// Create a first div with the class "global-container"
 				let res = document.createElement("div");
@@ -178,6 +177,38 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					res.append(globalContainerMonth)
 
 				}
+
+				let tooltip = document.createElement("div");
+				tooltip.classList.add("tooltip-chm");
+				res.append(tooltip);
+
+				res.addEventListener("mouseover", (e) => {
+					if (e.target.classList.contains("day")) {
+						const rect = e.target.getBoundingClientRect();
+						const xOffset = 10; // Décalage en pixels pour éviter le curseur
+						const yOffset = 20; // Décalage en pixels pour éviter le curseur
+
+						tooltip.innerText = e.target.getAttribute("data-tooltip");
+						tooltip.style.display = "block";
+
+						// Positionner par rapport à l'élément, ajusté par la position de la souris et un décalage
+						tooltip.style.left = rect.left + window.scrollX + xOffset + "px";
+						tooltip.style.top = rect.top  + yOffset + "px";
+					}
+				});
+
+				res.addEventListener("mouseout", (e) => {
+					if (e.target.classList.contains("day")) {
+						tooltip.style.display = "none";
+					}
+				});
+
+				res.addEventListener("mouseout", (e) => {
+					if (e.target.classList.contains("day")) {
+						tooltip.style.display = "none";
+					}
+				})
+
 
 				this.$el.append(res);
 			}
@@ -12121,7 +12152,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        day.style.gridColumn = moduloValues[i];
 	        day.style.gridRow = floorValues[i];
 	        day.setAttribute("data-day", i + 1);
-
+	        day.setAttribute("data-tooltip", "test")
 	        fragment.appendChild(day);
 	    }
 
