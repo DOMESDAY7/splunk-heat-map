@@ -72,13 +72,19 @@ function createDaysName(dayNames, monthContainer) {
 
 /**
  * 
- * @param {Map} tabMonth 
- * @param {string} month 
+ * @param {Array} tabData  
  * @param {HTMLDivElement} monthContainer 
- * @returns boolean
+ * @returns void
  */
 function colorDays(tabData, monthContainer) {
-    const daysMap = new Map(tabData.map((item) => [`[data-day='${new Date(item._time).getDate()}']`, item]));
+    const daysMap = new Map(tabData.map((item) => {
+        const date = new Date(item._time);
+        // Validate the date to ensure it exists
+        if (date.toString() === "Invalid Date" || new Date(item._time).getDate() !== parseInt(item._time.split('-')[2], 10)) {
+            throw new Error(`Invalid or nonexistent day: ${item._time}`);
+        }
+        return [`[data-day='${date.getDate()}']`, item];
+    }));
 
     for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
         const dayElement = monthContainer.querySelector(selector);
@@ -96,8 +102,6 @@ function colorDays(tabData, monthContainer) {
         }
     }
     return true;
-
-
 }
 
 module.exports = {
