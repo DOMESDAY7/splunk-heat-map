@@ -1,19 +1,20 @@
-const { rowDataToTabMonth, createDays, createDaysName, colorDays } = require('./helper');
+const { rowDataToMapMonth, createDays, createDaysName, colorDays } = require('./helper');
 const { JSDOM } = require('jsdom');
 const { daysInMonth } = require('../date/date');
+
 describe('rowDataToTabMonth', () => {
     test('should throw an error if row length is less than 4', () => {
         const rowData = [
             ['2022-01-01', 10, 20]
         ];
-        expect(() => rowDataToTabMonth(rowData)).toThrow('Missing fields');
+        expect(() => rowDataToMapMonth(rowData)).toThrow('Missing fields');
     });
 
     test('should convert numeric strings to numbers', () => {
         const rowData = [
             ['2022-01-01', '10', '20', '30']
         ];
-        const result = rowDataToTabMonth(rowData);
+        const result = rowDataToMapMonth(rowData);
         expect(result.get('1-2022')[0]).toEqual({
             _time: '2022-01-01',
             threshold_critical: 10,
@@ -28,14 +29,14 @@ describe('rowDataToTabMonth', () => {
             ['2022-01-02', '40', '50', '60'],
             ['2022-02-01', '70', '80', '90']
         ];
-        const result = rowDataToTabMonth(rowData);
+        const result = rowDataToMapMonth(rowData);
 
         expect(result.get('1-2022')).toHaveLength(2);
     });
 
     test('should handle empty input', () => {
         const rowData = [];
-        const result = rowDataToTabMonth(rowData);
+        const result = rowDataToMapMonth(rowData);
         expect(result).toEqual(new Map());
     });
 });
@@ -151,11 +152,11 @@ describe("rowDataToTabMonth + createDays + createDaysName", () => {
             ['2024-01-01', '10', '20', '30'],
             ['2023-01-02', '40', '50', '60'],
         ];
-        const result = rowDataToTabMonth(rowData);
+        const result = rowDataToMapMonth(rowData);
 
-        for (const month in result) {
+        for (const [month, tab] of result) {
 
-            const dateFirstRow = new Date(result[month][0]._time);
+            const dateFirstRow = new Date(tab[0]._time);
             const monthRow = dateFirstRow.getMonth();
             const yearRow = dateFirstRow.getFullYear();
 
@@ -193,17 +194,19 @@ describe('colorDays', () => {
         global.document = dom.window.document;
         container = document.createElement('div');
         dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        tabMonth = {
-            '1-2022': [
+        tabMonth = new Map([
+            ['1-2022', [
                 { _time: '2022-01-01', value: 99, threshold_critical: 95, threshold_moderate: 98 },
                 { _time: '2022-01-02', value: 97, threshold_critical: 95, threshold_moderate: 98 },
                 { _time: '2022-01-03', value: 5, threshold_critical: 95, threshold_moderate: 98 },
                 { _time: '2022-01-04', value: 100, threshold_critical: 95, threshold_moderate: 98 },
                 { _time: '2022-01-05', value: 98, threshold_critical: 95, threshold_moderate: 98 },
-            ]
-        };
+            ]]
+        ])
+
         createDays(31, 1, container);
         createDaysName(dayNames, container);
+
     });
 
     afterEach(() => {
@@ -211,7 +214,7 @@ describe('colorDays', () => {
     });
 
     test('should correctly color days based on thresholds', () => {
-        const result = colorDays({ tabMonth, month: '1-2022', monthContainer: container, dayNames });
+        const result = colorDays(tabMonth, '1-2022', container);
         expect(result).toBe(true);
 
         const dayElements = container.querySelectorAll('.day');
@@ -225,7 +228,7 @@ describe('colorDays', () => {
     });
 
     test('should return false and not throw an error if a day element is not found', () => {
-        tabMonth['1-2022'].push({ _time: '2022-01-32', value: 10, threshold_critical: 20, threshold_moderate: 15 });
+        tabMonth.get('1-2022').push({ _time: '2022-01-32', value: 10, threshold_critical: 20, threshold_moderate: 15 });
         const result = colorDays({ tabMonth, month: '1-2022', monthContainer: container, dayNames });
         expect(result).toBe(false);
     });

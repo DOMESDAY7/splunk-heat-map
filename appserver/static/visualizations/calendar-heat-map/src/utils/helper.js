@@ -3,7 +3,7 @@
  * @param {Array[]} rowData data from splunk : _time, threshold_critical, threshold_moderate, value
  * @returns {Map} tabMonth : {month : [{_time, threshold_critical, threshold_moderate, value}]}
  */
-const rowDataToTabMonth = (rowData) => {
+const rowDataToMapMonth = (rowData) => {
     const tabMonth = new Map();
     for (const row of rowData) {
         if (row.length < 4) throw Error("Missing fields");
@@ -31,24 +31,26 @@ const rowDataToTabMonth = (rowData) => {
  * @param {HTMLDivElement} monthContainer div of the month
  */
 function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
-    // Create the days
-    for (let i = 0; i < nbDaysInMonth; i++) {
+    const offset = 2; // Offset to align with day names and start from the second row
+    const fragment = document.createDocumentFragment();
 
-        let day = document.createElement("div");
+    // Calculate the values outside the loop to save computation time
+    const moduloValues = Array.from({ length: nbDaysInMonth }).map((_, i) => (firstDayOfWeek + i) % 7 + offset);
+    const floorValues = Array.from({ length: nbDaysInMonth }).map((_, i) => Math.floor((firstDayOfWeek + i) / 7) + offset);
+
+    for (let i = 0; i < nbDaysInMonth; i++) {
+        const day = document.createElement("div");
         day.classList.add("day");
         day.textContent = i + 1;
 
-        // Calculate the position of the day in the grid
-        let column = ((firstDayOfWeek + i) % 7) + 2; // Offset by 2 to align with day names
-        let row = Math.floor((firstDayOfWeek + i) / 7) + 2; // Offset by 2 to start from the second row
-
-        day.style.gridColumn = column;
-        day.style.gridRow = row;
+        day.style.gridColumn = moduloValues[i];
+        day.style.gridRow = floorValues[i];
         day.setAttribute("data-day", i + 1);
 
-        monthContainer.append(day);
+        fragment.appendChild(day);
     }
 
+    monthContainer.append(fragment);
 }
 
 /**
@@ -104,13 +106,8 @@ function colorDays(tabMonth, month, monthContainer) {
     }
 }
 
-
-
-
-
-
 module.exports = {
-    rowDataToTabMonth,
+    rowDataToMapMonth,
     createDays,
     createDaysName,
     colorDays

@@ -1,6 +1,7 @@
 const { daysInMonth, getWeeksNb } = require('./date');
 
 describe('daysInMonth', () => {
+
     test('February in a leap year', () => {
         expect(daysInMonth(2, 2020)).toBe(29);
     });
@@ -20,9 +21,31 @@ describe('daysInMonth', () => {
     test('Invalid month', () => {
         expect(() => daysInMonth(13, 2021)).toThrow();
     });
+
+    test('February in a negative year', () => {
+        expect(() => daysInMonth(2, -2020)).toThrow();
+    });
+
+    test('Zero as month', () => {
+        expect(() => daysInMonth(0, 2021)).toThrow();
+    });
+
+    test('Zero as year', () => {
+        expect(() => daysInMonth(3, 0)).toThrow();
+    });
+
+    test('Negative month', () => {
+        expect(() => daysInMonth(-1, 2021)).toThrow();
+    });
+
+    test('Negative year', () => {
+        expect(() => daysInMonth(3, -2021)).toThrow();
+    });
 });
 
+
 describe('getWeeksNb', () => {
+
     test('January', () => {
         expect(getWeeksNb(1, 2024)).toEqual([1, 2, 3, 4, 5]);
     });
@@ -41,5 +64,22 @@ describe('getWeeksNb', () => {
 
     test('Invalid month', () => {
         expect(() => getWeeksNb(13, 2022)).toThrow();
+    });
+
+
+    test('Negative year', () => {
+        expect(() => getWeeksNb(2, -2024)).toThrow();
+    });
+
+    test('Zero as month', () => {
+        expect(() => getWeeksNb(0, 2024)).toThrow();
+    });
+
+    test('Zero as year', () => {
+        expect(() => getWeeksNb(6, 0)).toThrow();
+    });
+
+    test('Negative month', () => {
+        expect(() => getWeeksNb(-1, 2024)).toThrow();
     });
 });

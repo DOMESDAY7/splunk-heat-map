@@ -42,7 +42,7 @@ define([
 		},
 
 		updateView: function (data, config) {
-			const { rowDataToTabMonth, createDays, createDaysName, colorDays } = require("./utils/helper");
+			const { rowDataToMapMonth, createDays, createDaysName, colorDays } = require("./utils/helper");
 			const { daysInMonth, getWeeksNb, dayNames } = require("date/date");
 
 			// Clear the display div
@@ -54,7 +54,7 @@ define([
 			// Check if data is empty
 			if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
 
-			const tabMonth = rowDataToTabMonth(dataRows);
+			const tabMonth = rowDataToMapMonth(dataRows);
 			console.log(tabMonth)
 
 			// Create a first div with the class "global-container"

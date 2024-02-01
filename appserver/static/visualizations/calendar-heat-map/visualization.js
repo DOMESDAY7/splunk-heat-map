@@ -88,7 +88,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			},
 
 			updateView: function (data, config) {
-				const { rowDataToTabMonth, createDays, createDaysName, colorDays } = __webpack_require__(5);
+				const { rowDataToMapMonth, createDays, createDaysName, colorDays } = __webpack_require__(5);
 				const { daysInMonth, getWeeksNb, dayNames } = __webpack_require__(6);
 
 				// Clear the display div
@@ -100,7 +100,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				// Check if data is empty
 				if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
 
-				const tabMonth = rowDataToTabMonth(dataRows);
+				const tabMonth = rowDataToMapMonth(dataRows);
 				console.log(tabMonth)
 
 				// Create a first div with the class "global-container"
@@ -108,13 +108,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				res.classList.add("global-container");
 
 				// Get the number of days in the month of the first row
-				for (const month in tabMonth) {
-					if (!tabMonth[month]) continue;
+				for (const [month, value] of tabMonth) {
+					if (!value) continue;
 
 					// Create a "p" element with the class "month-name" and the name of the month 
 					let monthName = document.createElement("p");
 					monthName.classList.add("month-name");
-					monthName.innerText = new Date(tabMonth[month][0]._time).toLocaleString("default", { month: "long", year: "numeric" });
+					monthName.innerText = new Date(value[0]._time).toLocaleString("default", { month: "long", year: "numeric" });
 
 					let globalContainerMonth = document.createElement("div");
 					globalContainerMonth.classList.add("global-container-month");
@@ -125,7 +125,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					let monthContainer = document.createElement("div");
 					monthContainer.classList.add("container-month");
 
-					const dateFirstRow = new Date(tabMonth[month][0]._time);
+					const dateFirstRow = new Date(value[0]._time);
 					const monthRow = dateFirstRow.getMonth();
 					const yearRow = dateFirstRow.getFullYear();
 
@@ -152,9 +152,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
 
-					colorDays({ tabMonth, month, monthContainer, dayNames });
+					colorDays(tabMonth, month, monthContainer, dayNames);
 
-					const averagePerMonth = tabMonth[month].reduce((acc, { value }) => acc + value, 0) / tabMonth[month].length;
+					const averagePerMonth = value.reduce((acc, { value }) => acc + value, 0) / value.length;
 
 					// create a div for the average value with the class "average"
 					let average = document.createElement("div");
@@ -12076,10 +12076,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	/**
 	 * 
 	 * @param {Array[]} rowData data from splunk : _time, threshold_critical, threshold_moderate, value
-	 * @returns {Object} tabMonth : {month : [{_time, threshold_critical, threshold_moderate, value}]}
+	 * @returns {Map} tabMonth : {month : [{_time, threshold_critical, threshold_moderate, value}]}
 	 */
-	const rowDataToTabMonth = (rowData) => {
-	    const tabMonth = {};
+	const rowDataToMapMonth = (rowData) => {
+	    const tabMonth = new Map();
 	    for (const row of rowData) {
 	        if (row.length < 4) throw Error("Missing fields");
 	        const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
@@ -12089,12 +12089,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	        const propertyName = `${dateRow.getMonth() + 1}-${dateRow.getYear() + 1900}`;
 
-	        if (propertyName in tabMonth) {
-	            tabMonth[propertyName].push(obj);
+	        if (tabMonth.has(propertyName)) {
+	            tabMonth.get(propertyName).push(obj);
 	        } else {
-	            tabMonth[propertyName] = [obj];
+	            tabMonth.set(propertyName, [obj]);
 	        }
 	    }
+
 	    return tabMonth;
 	}
 
@@ -12105,23 +12106,26 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @param {HTMLDivElement} monthContainer div of the month
 	 */
 	function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
-	    // Create the days
-	    for (let i = 0; i < nbDaysInMonth; i++) {
+	    const offset = 2; // Offset to align with day names and start from the second row
+	    const fragment = document.createDocumentFragment();
 
-	        let day = document.createElement("div");
+	    // Calculate the values outside the loop to save computation time
+	    const moduloValues = Array.from({ length: nbDaysInMonth }).map((_, i) => (firstDayOfWeek + i) % 7 + offset);
+	    const floorValues = Array.from({ length: nbDaysInMonth }).map((_, i) => Math.floor((firstDayOfWeek + i) / 7) + offset);
+
+	    for (let i = 0; i < nbDaysInMonth; i++) {
+	        const day = document.createElement("div");
 	        day.classList.add("day");
 	        day.textContent = i + 1;
 
-	        // Calculate the position of the day in the grid
-	        let column = ((firstDayOfWeek + i) % 7) + 2; // Offset by 2 to align with day names
-	        let row = Math.floor((firstDayOfWeek + i) / 7) + 2; // Offset by 2 to start from the second row
+	        day.style.gridColumn = moduloValues[i];
+	        day.style.gridRow = floorValues[i];
+	        day.setAttribute("data-day", i + 1);
 
-	        day.style.gridColumn = column;
-	        day.style.gridRow = row;
-
-	        monthContainer.append(day);
+	        fragment.appendChild(day);
 	    }
 
+	    monthContainer.append(fragment);
 	}
 
 	/**
@@ -12141,41 +12145,44 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    }
 	}
 
-	function colorDays({ tabMonth, month, monthContainer, dayNames }) {
+	/**
+	 * 
+	 * @param {Map} tabMonth 
+	 * @param {string} month 
+	 * @param {HTMLDivElement} monthContainer 
+	 * @returns boolean
+	 */
+	function colorDays(tabMonth, month, monthContainer) {
 	    try {
-	        // Récupérer tous les éléments de jour une seule fois
-	        const daysElements = monthContainer.querySelectorAll('.day');
+	        if (tabMonth.has(month)) {
+	            const daysMap = new Map(tabMonth.get(month).map((item) => [`[data-day='${new Date(item._time).getDate()}']`, item]));
 
-	        for (const { _time, value, threshold_critical, threshold_moderate } of tabMonth[month]) {
-	            const dayNumber = new Date(_time).getDate();
+	            for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
+	                const dayElement = monthContainer.querySelector(selector);
 
-	            // Récupérer l'élément du jour correspondant
-	            const dayElement = daysElements[dayNumber - 1]; // -1 car les indices commencent à 0
-
-	            if (dayElement) {
-	                if (value > 0 && value <= threshold_critical) {
-	                    dayElement.classList.add("critical");
-	                } else if (value > threshold_critical && value <= threshold_moderate) {
-	                    dayElement.classList.add("moderate");
+	                if (dayElement) {
+	                    if (value > 0 && value <= threshold_critical) {
+	                        dayElement.classList.add("critical");
+	                    } else if (value > threshold_critical && value <= threshold_moderate) {
+	                        dayElement.classList.add("moderate");
+	                    } else {
+	                        dayElement.classList.add("normal");
+	                    }
 	                } else {
-	                    dayElement.classList.add("normal");
+	                    throw Error("dayElement is undefined");
 	                }
-	            } else {
-	                throw Error("dayElement is undefined");
 	            }
+	            return true;
+	        } else {
+	            throw Error("Month not found in tabMonth");
 	        }
-	        return true;
 	    } catch (e) {
 	        return false;
 	    }
 	}
 
-
-
-
-
 	module.exports = {
-	    rowDataToTabMonth,
+	    rowDataToMapMonth,
 	    createDays,
 	    createDaysName,
 	    colorDays
@@ -12186,9 +12193,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 /***/ (function(module, exports) {
 
 	const daysInMonth = (month, year) => {
-	    if (month < 1 || month > 12) {
-	        throw new Error("Invalid month");
-	    }
+	    if (month < 1 || month > 12) throw new Error("Invalid month");
+	    if (year <= 0) throw new Error("Invalid year");
 	    return new Date(year, month, 0).getDate();
 	};
 
@@ -12199,33 +12205,32 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @return an array of number, each number represent the number of the week in the month depending on the month and the year
 	 */
 	const getWeeksNb = (month, year) => {
-	    if (month < 1 || month > 12) {
-	        throw new Error("Invalid month");
-	    }
-
-	    const nbDaysInMonth = daysInMonth(month, year);
-	    const firstDayOfMonth = new Date(year, month - 1, 1);
-	    const lastDayOfMonth = new Date(year, month - 1, nbDaysInMonth);
-
-	    let firstWeekNumber = getWeekNumber(firstDayOfMonth);
-	    let lastWeekNumber = getWeekNumber(lastDayOfMonth);
-
-	    // Handling the year transition
-	    if (lastDayOfMonth.getMonth() === 11 && lastWeekNumber === 1) {
-	        lastWeekNumber = 53; // Set to a high number to include week 1 of next year
-	    }
+	    if (month < 1 || month > 12) throw new Error("Invalid month");
+	    if (year <= 0) throw new Error("Invalid year");
 
 	    const weeksNb = [];
-	    let currentWeek = firstWeekNumber;
-	    while (currentWeek <= lastWeekNumber) {
-	        weeksNb.push(currentWeek === 53 ? 1 : currentWeek); // Reset to 1 for the new year
+	    const firstDayOfMonth = new Date(year, month - 1, 1);
+	    const lastDayOfMonth = new Date(year, month, 0); // Last day of the month
 
-	        firstDayOfMonth.setDate(firstDayOfMonth.getDate() + 7);
-	        currentWeek = getWeekNumber(firstDayOfMonth);
+	    // Start with the first week of the month
+	    let currentWeek = getWeekNumber(firstDayOfMonth);
+	    weeksNb.push(currentWeek);
 
-	        // Handling the reset to week 1 in the new year
-	        if (firstDayOfMonth.getFullYear() > year && currentWeek > 1) {
-	            break;
+	    for (let day = 2; day <= lastDayOfMonth.getDate(); day++) {
+	        const date = new Date(year, month - 1, day);
+	        const weekNumber = getWeekNumber(date);
+	        if (weekNumber !== currentWeek) {
+	            weeksNb.push(weekNumber);
+	            currentWeek = weekNumber; // Update the current week
+	        }
+	    }
+
+	    // Special handling for the transition between years
+	    if (month === 12 && !weeksNb.includes(1)) {
+	        // Check if the first week of next year should be included
+	        const firstWeekOfNextYear = getWeekNumber(new Date(year + 1, 0, 1));
+	        if (firstWeekOfNextYear === 1) {
+	            weeksNb.push(firstWeekOfNextYear);
 	        }
 	    }
 
@@ -12237,7 +12242,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	function getWeekNumber(d) {
 	    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
 	    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
-	    const yearStart = new Date(Date.UTC(d.getUTCFullYear(),0,1));
+	    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
 	    return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
 	}
 
@@ -12247,7 +12252,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	module.exports = {
 	    daysInMonth,
 	    getWeeksNb,
-	    dayNames    
+	    dayNames
 	}
 
 /***/ })
