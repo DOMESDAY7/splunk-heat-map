@@ -62,13 +62,13 @@ define([
 			res.classList.add("global-container");
 
 			// Get the number of days in the month of the first row
-			for (const [month, value] of tabMonth) {
-				if (!value) continue;
+			for (const [month, tabMonthData] of tabMonth) {
+				if (!tabMonthData) continue;
 
 				// Create a "p" element with the class "month-name" and the name of the month 
 				let monthName = document.createElement("p");
 				monthName.classList.add("month-name");
-				monthName.innerText = new Date(value[0]._time).toLocaleString("default", { month: "long", year: "numeric" });
+				monthName.innerText = new Date(tabMonthData[0]._time).toLocaleString("default", { month: "long", year: "numeric" });
 
 				let globalContainerMonth = document.createElement("div");
 				globalContainerMonth.classList.add("global-container-month");
@@ -79,7 +79,7 @@ define([
 				let monthContainer = document.createElement("div");
 				monthContainer.classList.add("container-month");
 
-				const dateFirstRow = new Date(value[0]._time);
+				const dateFirstRow = new Date(tabMonthData[0]._time);
 				const monthRow = dateFirstRow.getMonth();
 				const yearRow = dateFirstRow.getFullYear();
 
@@ -106,9 +106,9 @@ define([
 
 				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
 
-				colorDays(tabMonth, month, monthContainer, dayNames);
+				colorDays(tabMonthData, monthContainer);
 
-				const averagePerMonth = value.reduce((acc, { value }) => acc + value, 0) / value.length;
+				const averagePerMonth = tabMonthData.reduce((acc, { value }) => acc + value, 0) / tabMonthData.length;
 
 				// create a div for the average value with the class "average"
 				let average = document.createElement("div");

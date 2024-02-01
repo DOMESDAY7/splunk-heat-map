@@ -77,33 +77,27 @@ function createDaysName(dayNames, monthContainer) {
  * @param {HTMLDivElement} monthContainer 
  * @returns boolean
  */
-function colorDays(tabMonth, month, monthContainer) {
-    try {
-        if (tabMonth.has(month)) {
-            const daysMap = new Map(tabMonth.get(month).map((item) => [`[data-day='${new Date(item._time).getDate()}']`, item]));
+function colorDays(tabData, monthContainer) {
+    const daysMap = new Map(tabData.map((item) => [`[data-day='${new Date(item._time).getDate()}']`, item]));
 
-            for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
-                const dayElement = monthContainer.querySelector(selector);
+    for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
+        const dayElement = monthContainer.querySelector(selector);
 
-                if (dayElement) {
-                    if (value > 0 && value <= threshold_critical) {
-                        dayElement.classList.add("critical");
-                    } else if (value > threshold_critical && value <= threshold_moderate) {
-                        dayElement.classList.add("moderate");
-                    } else {
-                        dayElement.classList.add("normal");
-                    }
-                } else {
-                    throw Error("dayElement is undefined");
-                }
+        if (dayElement) {
+            if (value > 0 && value <= threshold_critical) {
+                dayElement.classList.add("critical");
+            } else if (value > threshold_critical && value <= threshold_moderate) {
+                dayElement.classList.add("moderate");
+            } else {
+                dayElement.classList.add("normal");
             }
-            return true;
         } else {
-            throw Error("Month not found in tabMonth");
+            throw Error("dayElement is undefined");
         }
-    } catch (e) {
-        return false;
     }
+    return true;
+
+
 }
 
 module.exports = {

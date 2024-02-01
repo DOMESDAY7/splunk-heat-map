@@ -108,13 +108,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				res.classList.add("global-container");
 
 				// Get the number of days in the month of the first row
-				for (const [month, value] of tabMonth) {
-					if (!value) continue;
+				for (const [month, tabMonthData] of tabMonth) {
+					if (!tabMonthData) continue;
 
 					// Create a "p" element with the class "month-name" and the name of the month 
 					let monthName = document.createElement("p");
 					monthName.classList.add("month-name");
-					monthName.innerText = new Date(value[0]._time).toLocaleString("default", { month: "long", year: "numeric" });
+					monthName.innerText = new Date(tabMonthData[0]._time).toLocaleString("default", { month: "long", year: "numeric" });
 
 					let globalContainerMonth = document.createElement("div");
 					globalContainerMonth.classList.add("global-container-month");
@@ -125,7 +125,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					let monthContainer = document.createElement("div");
 					monthContainer.classList.add("container-month");
 
-					const dateFirstRow = new Date(value[0]._time);
+					const dateFirstRow = new Date(tabMonthData[0]._time);
 					const monthRow = dateFirstRow.getMonth();
 					const yearRow = dateFirstRow.getFullYear();
 
@@ -152,9 +152,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
 
-					colorDays(tabMonth, month, monthContainer, dayNames);
+					colorDays(tabMonthData, monthContainer);
 
-					const averagePerMonth = value.reduce((acc, { value }) => acc + value, 0) / value.length;
+					const averagePerMonth = tabMonthData.reduce((acc, { value }) => acc + value, 0) / tabMonthData.length;
 
 					// create a div for the average value with the class "average"
 					let average = document.createElement("div");
@@ -12152,33 +12152,27 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @param {HTMLDivElement} monthContainer 
 	 * @returns boolean
 	 */
-	function colorDays(tabMonth, month, monthContainer) {
-	    try {
-	        if (tabMonth.has(month)) {
-	            const daysMap = new Map(tabMonth.get(month).map((item) => [`[data-day='${new Date(item._time).getDate()}']`, item]));
+	function colorDays(tabData, monthContainer) {
+	    const daysMap = new Map(tabData.map((item) => [`[data-day='${new Date(item._time).getDate()}']`, item]));
 
-	            for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
-	                const dayElement = monthContainer.querySelector(selector);
+	    for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
+	        const dayElement = monthContainer.querySelector(selector);
 
-	                if (dayElement) {
-	                    if (value > 0 && value <= threshold_critical) {
-	                        dayElement.classList.add("critical");
-	                    } else if (value > threshold_critical && value <= threshold_moderate) {
-	                        dayElement.classList.add("moderate");
-	                    } else {
-	                        dayElement.classList.add("normal");
-	                    }
-	                } else {
-	                    throw Error("dayElement is undefined");
-	                }
+	        if (dayElement) {
+	            if (value > 0 && value <= threshold_critical) {
+	                dayElement.classList.add("critical");
+	            } else if (value > threshold_critical && value <= threshold_moderate) {
+	                dayElement.classList.add("moderate");
+	            } else {
+	                dayElement.classList.add("normal");
 	            }
-	            return true;
 	        } else {
-	            throw Error("Month not found in tabMonth");
+	            throw Error("dayElement is undefined");
 	        }
-	    } catch (e) {
-	        return false;
 	    }
+	    return true;
+
+
 	}
 
 	module.exports = {

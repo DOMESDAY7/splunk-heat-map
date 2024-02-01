@@ -214,8 +214,7 @@ describe('colorDays', () => {
     });
 
     test('should correctly color days based on thresholds', () => {
-        const result = colorDays(tabMonth, '1-2022', container);
-        expect(result).toBe(true);
+        colorDays(tabMonth.get('1-2022'), container);
 
         const dayElements = container.querySelectorAll('.day');
 
@@ -225,11 +224,5 @@ describe('colorDays', () => {
         expect(dayElements[2].classList.contains('critical')).toBe(true);
         expect(dayElements[3].classList.contains('normal')).toBe(true);
         expect(dayElements[4].classList.contains('moderate')).toBe(true);
-    });
-
-    test('should return false and not throw an error if a day element is not found', () => {
-        tabMonth.get('1-2022').push({ _time: '2022-01-32', value: 10, threshold_critical: 20, threshold_moderate: 15 });
-        const result = colorDays({ tabMonth, month: '1-2022', monthContainer: container, dayNames });
-        expect(result).toBe(false);
     });
 });
