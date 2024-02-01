@@ -42,118 +42,97 @@ define([
 		},
 
 		updateView: function (data, config) {
+			const { rowDataToMapMonth, createDays, createDaysName, colorDays } = require("./utils/helper");
+			const { daysInMonth, getWeeksNb, dayNames } = require("date/date");
+
+			// Clear the display div
+			this.$el.empty();
 
 			// Extract rows from data
-			var dataRows = data.rows;
+			const dataRows = data.rows;
 
 			// Check if data is empty
 			if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
 
-
-			// Clear the div
-			this.$el.empty();
+			const tabMonth = rowDataToMapMonth(dataRows);
+			console.log(tabMonth)
 
 			// Create a first div with the class "global-container"
 			let res = document.createElement("div");
 			res.classList.add("global-container");
 
-			// Create a new div and add the class "container-month" to it
-			let monthContainer = document.createElement("div");
-			monthContainer.classList.add("container-month");
-
 			// Get the number of days in the month of the first row
-			const { daysInMonth, getWeeksNb } = require("utils/date");
+			for (const [month, tabMonthData] of tabMonth) {
+				if (!tabMonthData) continue;
 
-			const dateFirstRow = new Date(dataRows[0][0]);
-			const month = dateFirstRow.getMonth();
-			const year = dateFirstRow.getFullYear();
+				// Create a "p" element with the class "month-name" and the name of the month 
+				let monthName = document.createElement("p");
+				monthName.classList.add("month-name");
+				monthName.innerText = new Date(tabMonthData[0]._time).toLocaleString("default", { month: "long", year: "numeric" });
 
-			// Create day names
-			const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
-			for (let i = 0; i < dayNames.length; i++) {
-				let dayName = document.createElement("div");
-				dayName.classList.add("day-name");
-				dayName.innerText = dayNames[i];
-				dayName.style.gridRow = 1;
-				dayName.style.gridColumn = i + 2; // Start from column 2 to align with the first day of the week
-				monthContainer.append(dayName);
-			}
+				let globalContainerMonth = document.createElement("div");
+				globalContainerMonth.classList.add("global-container-month");
 
-			const weeksNb = getWeeksNb(month + 1, year);
+				globalContainerMonth.append(monthName);
 
-			for (let i = 0; i < weeksNb.length; i++) {
-				let week = document.createElement("div");
-				week.classList.add("week");
-				week.innerText = 'W' + weeksNb[i];
-				week.style.gridRow = i + 2;
-				week.style.gridColumn = 1;
-				monthContainer.append(week);
-			}
+				// Create a new div and add the class "container-month" to it
+				let monthContainer = document.createElement("div");
+				monthContainer.classList.add("container-month");
 
-			// Get the day of the week of the first day of the month
-			const firstDayOfMonth = new Date(year, month, 1);
-			const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7; // Convert so that Monday is 0, Sunday is 6
+				const dateFirstRow = new Date(tabMonthData[0]._time);
+				const monthRow = dateFirstRow.getMonth();
+				const yearRow = dateFirstRow.getFullYear();
 
-			const nbDaysInMonth = daysInMonth(month + 1, year);
+				createDaysName(dayNames, monthContainer);
 
-			// Create the days
-			for (let i = 0; i < nbDaysInMonth; i++) {
+				// get week number
+				const weeksNb = getWeeksNb(monthRow + 1, yearRow);
 
-				let day = document.createElement("div");
-				day.classList.add("day");
-				day.innerText = i + 1;
-
-				// Calculate the position of the day in the grid
-				let column = ((firstDayOfWeek + i) % 7) + 2; // Offset by 2 to align with day names
-				let row = Math.floor((firstDayOfWeek + i) / 7) + 2; // Offset by 2 to start from the second row
-
-				day.style.gridColumn = column;
-				day.style.gridRow = row;
-
-				monthContainer.append(day);
-			}
-
-			let averagePerMonth = 0
-
-			// Color the days depending on the data
-			dataRows.forEach(row => {
-				const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
-				const dayNumber = new Date(_time).getDate();
-				const dayElement = monthContainer.querySelector(`.day:nth-child(${dayNumber + dayNames.length})`); // Offset by dayNames.length to account for day name elements
-
-				averagePerMonth += value;
-
-				if (dayElement) {
-					if (value > threshold_critical) {
-						dayElement.classList.add("critical");
-					} else if (value > threshold_moderate) {
-						dayElement.classList.add("moderate");
-					} else {
-						dayElement.classList.add("normal");
-					}
+				for (let i = 0; i < weeksNb.length; i++) {
+					let week = document.createElement("div");
+					week.classList.add("week");
+					week.innerText = 'W' + weeksNb[i];
+					week.style.gridRow = i + 2;
+					week.style.gridColumn = 1;
+					monthContainer.append(week);
 				}
-			});
-			
-			averagePerMonth /= dataRows.length;
-			// create a div for the average value with the class "average"
-			let average = document.createElement("div");
-			average.classList.add("average");
+				// Get the day of the week of the first day of the month
+				const firstDayOfMonth = new Date(yearRow, monthRow, 1);
 
-			// set the color depending on the average value
-			if (averagePerMonth > 50) {
-				average.classList.add("critical");
-			} else if (averagePerMonth > 30) {
-				average.classList.add("moderate");
-			} else {
-				average.classList.add("normal");
+				// Convert so that Monday is 0, Sunday is 6
+				const firstDayOfWeek = (firstDayOfMonth.getDay() + 6) % 7;
+
+				const nbDaysInMonth = daysInMonth(monthRow + 1, yearRow);
+
+				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
+
+				colorDays(tabMonthData, monthContainer);
+
+				const averagePerMonth = tabMonthData.reduce((acc, { value }) => acc + value, 0) / tabMonthData.length;
+
+				// create a div for the average value with the class "average"
+				let average = document.createElement("div");
+				average.classList.add("average");
+
+				// set the color depending on the average value
+				if (averagePerMonth > 50) {
+					average.classList.add("critical");
+				} else if (averagePerMonth > 30) {
+					average.classList.add("moderate");
+				} else {
+					average.classList.add("normal");
+				}
+
+				average.innerText = averagePerMonth.toFixed(2);
+
+				// Append 
+				globalContainerMonth.append(monthContainer);
+				globalContainerMonth.append(average);
+
+				res.append(globalContainerMonth)
+
 			}
 
-			average.innerText = averagePerMonth.toFixed(2);
-			
-			// Append 
-			res.append(monthContainer);
-			
-			res.append(average);
 			this.$el.append(res);
 		}
 
