@@ -181,19 +181,21 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				let tooltip = document.createElement("div");
 				tooltip.classList.add("tooltip-chm");
 				res.append(tooltip);
-
+				const offsetPx = 10;
 				res.addEventListener("mouseover", (e) => {
 					if (e.target.classList.contains("day")) {
-						const rect = e.target.getBoundingClientRect();
-						const xOffset = 10; // Décalage en pixels pour éviter le curseur
-						const yOffset = 20; // Décalage en pixels pour éviter le curseur
+						const resRect = res.getBoundingClientRect();
 
 						tooltip.innerText = e.target.getAttribute("data-tooltip");
 						tooltip.style.display = "block";
 
-						// Positionner par rapport à l'élément, ajusté par la position de la souris et un décalage
-						tooltip.style.left = rect.left + window.scrollX + xOffset + "px";
-						tooltip.style.top = rect.top  + yOffset + "px";
+						tooltip.style.left = e.target.getBoundingClientRect().left + window.scrollX + offsetPx + "px";
+						tooltip.style.top = (e.clientY - resRect.top) + offsetPx + "px";
+
+
+
+						tooltip.style.visibility = 'visible';
+
 					}
 				});
 
@@ -203,11 +205,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					}
 				});
 
-				res.addEventListener("mouseout", (e) => {
-					if (e.target.classList.contains("day")) {
-						tooltip.style.display = "none";
-					}
-				})
 
 
 				this.$el.append(res);
@@ -12152,7 +12149,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        day.style.gridColumn = moduloValues[i];
 	        day.style.gridRow = floorValues[i];
 	        day.setAttribute("data-day", i + 1);
-	        day.setAttribute("data-tooltip", "test")
+	        day.setAttribute("data-tooltip", `day ${i + 1}`)
 	        fragment.appendChild(day);
 	    }
 

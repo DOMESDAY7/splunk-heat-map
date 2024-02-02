@@ -10,6 +10,7 @@
   align-items: start;
   margin: auto;
   gap: 2rem;
+  height: 100%;
   position: relative;
 }
 
