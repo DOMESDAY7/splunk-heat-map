@@ -135,36 +135,34 @@ define([
 			let tooltip = document.createElement("div");
 			tooltip.classList.add("tooltip-chm");
 			res.append(tooltip);
-			
-			const offsetPx = 10;
 
-			res.addEventListener("mouseover", (e) => {
+			const offsetPx = 5;
+
+			res.addEventListener("mousemove", (e) => {
 				if (e.target.classList.contains("day")) {
 					const resRect = res.getBoundingClientRect();
 
+					// Update the tooltip content and make it visible
 					tooltip.innerText = e.target.getAttribute("data-tooltip");
 					tooltip.style.display = "block";
-
-					tooltip.style.left = e.target.getBoundingClientRect().left + window.scrollX + offsetPx + "px";
-					tooltip.style.top = (e.clientY - resRect.top) + offsetPx + "px";
-
 					tooltip.style.visibility = 'visible';
 
-				}
-			});
-
-			res.addEventListener("mouseout", (e) => {
-				if (e.target.classList.contains("day")) {
+					// Position the tooltip to follow the mouse cursor within the `res`
+					// Adjusting for the offset and ensuring it's positioned correctly relative to `res`
+					tooltip.style.left = `${e.clientX - resRect.left + offsetPx}px`;
+					tooltip.style.top = `${e.clientY - resRect.top + offsetPx}px`;
+				}else{
 					tooltip.style.display = "none";
 				}
 			});
 
-
+			// Hide the tooltip when not hovering over a `day` element
+			res.addEventListener("mouseleave", () => {
+				tooltip.style.display = "none";
+			});
 
 			this.$el.append(res);
 		}
-
-
 
 	});
 });

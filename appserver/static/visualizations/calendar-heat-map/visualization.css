@@ -45,6 +45,7 @@
   align-items: center;
   border: 0.5px solid gray;
   color: gray;
+  cursor: pointer;
   /* aspect-ratio: 1/1; */
 }
 
@@ -105,8 +106,10 @@
 .tooltip-chm {
   position: absolute;
   /* display: none; */
-  background-color: gray;
+  background-color: rgba(128, 128, 128, 0.7);
+  backdrop-filter: blur(5px);
   border: 1px solid grey;
   padding: 0.5rem;
   z-index: 99999;
+  /* transition: all 0.1s ease; */
 }
