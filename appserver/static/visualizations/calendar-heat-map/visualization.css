@@ -10,6 +10,8 @@
   align-items: start;
   margin: auto;
   gap: 2rem;
+  height: 100%;
+  position: relative;
 }
 
 .average {
@@ -43,6 +45,7 @@
   align-items: center;
   border: 0.5px solid gray;
   color: gray;
+  cursor: pointer;
   /* aspect-ratio: 1/1; */
 }
 
@@ -98,4 +101,15 @@
     "monthGrid monthGrid average"
     "monthGrid monthGrid average";
   gap: 0 1rem;
+}
+
+.tooltip-chm {
+  position: absolute;
+  /* display: none; */
+  background-color: rgba(128, 128, 128, 0.7);
+  backdrop-filter: blur(5px);
+  border: 1px solid grey;
+  padding: 0.5rem;
+  z-index: 99999;
+  /* transition: all 0.1s ease; */
 }

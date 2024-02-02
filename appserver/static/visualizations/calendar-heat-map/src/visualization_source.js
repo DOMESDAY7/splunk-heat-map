@@ -55,7 +55,6 @@ define([
 			if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
 
 			const tabMonth = rowDataToMapMonth(dataRows);
-			console.log(tabMonth)
 
 			// Create a first div with the class "global-container"
 			let res = document.createElement("div");
@@ -133,10 +132,37 @@ define([
 
 			}
 
+			let tooltip = document.createElement("div");
+			tooltip.classList.add("tooltip-chm");
+			res.append(tooltip);
+
+			const offsetPx = 5;
+
+			res.addEventListener("mousemove", (e) => {
+				if (e.target.classList.contains("day")) {
+					const resRect = res.getBoundingClientRect();
+
+					// Update the tooltip content and make it visible
+					tooltip.innerText = e.target.getAttribute("data-tooltip");
+					tooltip.style.display = "block";
+					tooltip.style.visibility = 'visible';
+
+					// Position the tooltip to follow the mouse cursor within the `res`
+					// Adjusting for the offset and ensuring it's positioned correctly relative to `res`
+					tooltip.style.left = `${e.clientX - resRect.left + offsetPx}px`;
+					tooltip.style.top = `${e.clientY - resRect.top + offsetPx}px`;
+				}else{
+					tooltip.style.display = "none";
+				}
+			});
+
+			// Hide the tooltip when not hovering over a `day` element
+			res.addEventListener("mouseleave", () => {
+				tooltip.style.display = "none";
+			});
+
 			this.$el.append(res);
 		}
-
-
 
 	});
 });
