@@ -116,21 +116,29 @@ define([
 
 				colorDays(tabMonthData, monthContainer);
 
-				const averagePerMonth = tabMonthData.reduce((acc, { value }) => acc + value, 0) / tabMonthData.length;
+				// Filter the data to remove the empty values
+				const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
+
+				const averagePerMonth = tabMonthDataFiltered.reduce((acc, { value }) => acc + value, 0) / tabMonthDataFiltered.length;
 
 				// create a div for the average value with the class "average"
 				let average = document.createElement("div");
 				average.classList.add("average");
 
+				const critical = config[this.getPropertyNamespaceInfo().propertyNamespace + 'critical'] || 98;
+				const moderate = config[this.getPropertyNamespaceInfo().propertyNamespace + 'moderate'] || 99;
+				
 				// set the color depending on the average value
-				if (averagePerMonth > 50) {
+				if (averagePerMonth < critical) {
 					average.classList.add("critical");
-				} else if (averagePerMonth > 30) {
+				} else if (critical < averagePerMonth < moderate) {
 					average.classList.add("moderate");
 				} else {
 					average.classList.add("normal");
 				}
+				
 				let p = document.createElement("p");
+				
 				p.classList.add("average-value");
 				p.textContent = averagePerMonth.toFixed(2);
 				average.append(p);
