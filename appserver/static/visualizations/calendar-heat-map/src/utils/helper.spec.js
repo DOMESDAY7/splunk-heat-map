@@ -54,7 +54,6 @@ describe('rowDataToTabMonth', () => {
 
     test('should handle empty input', () => {
         const rowData = [];
-        console.log()
         const result = rowDataToMapMonth(rowData);
         expect(result).toEqual(new Map());
     });

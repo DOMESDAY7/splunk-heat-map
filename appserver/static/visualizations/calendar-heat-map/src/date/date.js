@@ -6,8 +6,8 @@ const daysInMonth = (month, year) => {
 
 /**
  * 
- * @param month the month number (1-12)
- * @param year  the year
+ * @param {number} month the month number (1-12)
+ * @param {number} year the year
  * @return an array of number, each number represent the number of the week in the month depending on the month and the year
  */
 const getWeeksNb = (month, year) => {
@@ -44,13 +44,32 @@ const getWeeksNb = (month, year) => {
 };
 
 
-// Helper function to get the ISO week number
+/**
+ * 
+ * @param {Date} d date to get the week number from
+ * @returns 
+ */
 function getWeekNumber(d) {
+    // Convert the date to UTC
     d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    // Adjust the date to be Thursday of the same week (ISO week)
+    // ISO weeks start on Monday; 4 represents Thursday
+    const dayOffsetToThursday = 4;
+    const isoWeekStartDay = 1; // Monday as the start day of ISO week
+    const millisecondsPerDay = 86400000; // Number of milliseconds in a day
+    const daysInWeek = 7;
+
+    d.setUTCDate(d.getUTCDate() + dayOffsetToThursday - (d.getUTCDay() || daysInWeek));
+    
+    // Calculate the start of the year
     const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-    return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    
+    // Calculate the ISO week number
+    // Add 1 because division starts at 0
+    return Math.ceil(((d - yearStart) / millisecondsPerDay + 1) / daysInWeek);
 }
+
+
 
 
 const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
