@@ -70,12 +70,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 			formatData: function (data, config) {
 				if (!data) return;
-				console.log(data, config)
 
 				// Get the fields
 				const fields = data.fields.map((field) => field.name);
 
-				const mandatoryFields = ["_time", "threshold_critical", "threshold_warning", "value"];
+				const mandatoryFields = ["_time", "threshold_critical", "threshold_moderate", "value"];
 
 				// Check if all mandatory fields are present
 				const missingFields = mandatoryFields.filter((field) => !fields.includes(field));
@@ -88,19 +87,29 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			},
 
 			updateView: function (data, config) {
+
 				const { rowDataToMapMonth, createDays, createDaysName, colorDays } = __webpack_require__(5);
 				const { daysInMonth, getWeeksNb, dayNames } = __webpack_require__(6);
 
 				// Clear the display div
 				this.$el.empty();
 
-				// Extract rows from data
-				const dataRows = data.rows;
+				// get color from the config
+				var criticalColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'criticalColor'] || "#c05c5c";
+				var moderateColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'moderateColor'] || "#c09a5c";
+				var normalColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'normalColor'] || "#5cc05c";
+				var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
+
+				// get data or day number
+				var isDayNb = config[this.getPropertyNamespaceInfo().propertyNamespace + 'isDayNb'] || false;
+
+				const root = document.querySelector(":root");
+				root.style.setProperty("--critical-color", criticalColor);
+				root.style.setProperty("--moderate-color", moderateColor);
+				root.style.setProperty("--normal-color", normalColor);
 
 				// Check if data is empty
-				if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
-
-				const tabMonth = rowDataToMapMonth(dataRows);
+				const tabMonth = rowDataToMapMonth(data);
 
 				// Create a first div with the class "global-container"
 				let res = document.createElement("div");
@@ -167,8 +176,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					} else {
 						average.classList.add("normal");
 					}
-
-					average.innerText = averagePerMonth.toFixed(2);
+					let p = document.createElement("p");
+					p.classList.add("average-value");
+					p.textContent = averagePerMonth.toFixed(2);
+					average.append(p);
 
 					// Append 
 					globalContainerMonth.append(monthContainer);
@@ -197,7 +208,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 						// Adjusting for the offset and ensuring it's positioned correctly relative to `res`
 						tooltip.style.left = `${e.clientX - resRect.left + offsetPx}px`;
 						tooltip.style.top = `${e.clientY - resRect.top + offsetPx}px`;
-					}else{
+					} else {
 						tooltip.style.display = "none";
 					}
 				});
@@ -207,12 +218,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					tooltip.style.display = "none";
 				});
 
-
-
 				this.$el.append(res);
 			}
-
-
 
 		});
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -12106,28 +12113,64 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	/**
 	 * 
 	 * @param {Array[]} rowData data from splunk : _time, threshold_critical, threshold_moderate, value
-	 * @returns {Map} tabMonth : {month : [{_time, threshold_critical, threshold_moderate, value}]}
+	 * @returns {Map} tabMonth : Map => [[month : [{_time, threshold_critical, threshold_moderate, value}]]]
 	 */
-	const rowDataToMapMonth = (rowData) => {
+	const rowDataToMapMonth = (data) => {
+	    const tabFields = data.fields.map((field) => field.name);
+	    const fieldIndices = {
+	        _time: tabFields.indexOf("_time"),
+	        threshold_critical: tabFields.indexOf("threshold_critical"),
+	        threshold_moderate: tabFields.indexOf("threshold_moderate"),
+	        value: tabFields.indexOf("value"),
+	    };
+
+	    if (
+	        !Object.values(fieldIndices).every((index) => index !== -1) ||
+	        data.rows.some((row) => row.length < 4)
+	    ) {
+	        throw new Error("Missing fields");
+	    }
+
 	    const tabMonth = new Map();
-	    for (const row of rowData) {
-	        if (row.length < 4) throw Error("Missing fields");
-	        const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
 
-	        const obj = { _time, threshold_critical, threshold_moderate, value };
-	        const dateRow = new Date(_time);
+	    for (const row of data.rows) {
+	        const [_time, threshold_critical, threshold_moderate, value] = row.map(
+	            (item, index) => {
+	                if (index == fieldIndices._time) {
+	                    return item
+	                } else if (index === fieldIndices.threshold_critical ||
+	                    index === fieldIndices.threshold_moderate ||
+	                    index === fieldIndices.value) {
+	                    return parseFloat(item)
+	                } else {
+	                    return item
+	                }
+	            });
 
-	        const propertyName = `${dateRow.getMonth() + 1}-${dateRow.getYear() + 1900}`;
-
-	        if (tabMonth.has(propertyName)) {
-	            tabMonth.get(propertyName).push(obj);
-	        } else {
-	            tabMonth.set(propertyName, [obj]);
+	        const dateParts = _time.split(" ")[0].split("-"); // Extract year and month from _time
+	        if (dateParts.length < 2) {
+	            throw new Error("Invalid date format");
 	        }
+
+	        const [year, month] = dateParts;
+	        const propertyName = `${month}-${year}`;
+
+	        const obj = {
+	            _time,
+	            threshold_critical,
+	            threshold_moderate,
+	            value,
+	        };
+
+	        tabMonth.has(propertyName)
+	            ? tabMonth.get(propertyName).push(obj)
+	            : tabMonth.set(propertyName, [obj]);
 	    }
 
 	    return tabMonth;
-	}
+	};
+
+
 
 	/**
 	 * 
@@ -12192,16 +12235,18 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    }));
 
 	    for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
+
 	        const dayElement = monthContainer.querySelector(selector);
 
-	        if (dayElement) {
-	            if (value > 0 && value <= threshold_critical) {
+	        if (dayElement && value) {
+	            if (value >= 0 && value <= threshold_critical) {
 	                dayElement.classList.add("critical");
-	            } else if (value > threshold_critical && value <= threshold_moderate) {
+	            } else if (value >= threshold_critical && value <= threshold_moderate) {
 	                dayElement.classList.add("moderate");
 	            } else {
 	                dayElement.classList.add("normal");
 	            }
+	            dayElement.setAttribute("data-tooltip", `day ${new Date(_time).getDate()} : ${value}%`);
 	        } else {
 	            throw Error("dayElement is undefined");
 	        }

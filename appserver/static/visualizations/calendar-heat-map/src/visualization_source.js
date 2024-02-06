@@ -24,12 +24,11 @@ define([
 
 		formatData: function (data, config) {
 			if (!data) return;
-			console.log(data, config)
 
 			// Get the fields
 			const fields = data.fields.map((field) => field.name);
 
-			const mandatoryFields = ["_time", "threshold_critical", "threshold_warning", "value"];
+			const mandatoryFields = ["_time", "threshold_critical", "threshold_moderate", "value"];
 
 			// Check if all mandatory fields are present
 			const missingFields = mandatoryFields.filter((field) => !fields.includes(field));
@@ -42,19 +41,29 @@ define([
 		},
 
 		updateView: function (data, config) {
+
 			const { rowDataToMapMonth, createDays, createDaysName, colorDays } = require("./utils/helper");
 			const { daysInMonth, getWeeksNb, dayNames } = require("date/date");
 
 			// Clear the display div
 			this.$el.empty();
 
-			// Extract rows from data
-			const dataRows = data.rows;
+			// get color from the config
+			var criticalColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'criticalColor'] || "#c05c5c";
+			var moderateColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'moderateColor'] || "#c09a5c";
+			var normalColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'normalColor'] || "#5cc05c";
+			var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
+
+			// get data or day number
+			var isDayNb = config[this.getPropertyNamespaceInfo().propertyNamespace + 'isDayNb'] || false;
+
+			const root = document.querySelector(":root");
+			root.style.setProperty("--critical-color", criticalColor);
+			root.style.setProperty("--moderate-color", moderateColor);
+			root.style.setProperty("--normal-color", normalColor);
 
 			// Check if data is empty
-			if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
-
-			const tabMonth = rowDataToMapMonth(dataRows);
+			const tabMonth = rowDataToMapMonth(data);
 
 			// Create a first div with the class "global-container"
 			let res = document.createElement("div");
@@ -121,8 +130,10 @@ define([
 				} else {
 					average.classList.add("normal");
 				}
-
-				average.innerText = averagePerMonth.toFixed(2);
+				let p = document.createElement("p");
+				p.classList.add("average-value");
+				p.textContent = averagePerMonth.toFixed(2);
+				average.append(p);
 
 				// Append 
 				globalContainerMonth.append(monthContainer);
@@ -151,7 +162,7 @@ define([
 					// Adjusting for the offset and ensuring it's positioned correctly relative to `res`
 					tooltip.style.left = `${e.clientX - resRect.left + offsetPx}px`;
 					tooltip.style.top = `${e.clientY - resRect.top + offsetPx}px`;
-				}else{
+				} else {
 					tooltip.style.display = "none";
 				}
 			});

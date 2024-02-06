@@ -4,16 +4,28 @@ const { daysInMonth } = require('../date/date');
 
 describe('rowDataToTabMonth', () => {
     test('should throw an error if row length is less than 4', () => {
-        const rowData = [
-            ['2022-01-01', 10, 20]
-        ];
+        const rowData = {
+            fields: [
+                { name: '_time' },
+                { name: 'threshold_critical' },
+                { name: 'threshold_moderate' },
+                { name: 'value' }
+            ],
+            rows: [['2022-01-01', 10, 20]]
+        }
         expect(() => rowDataToMapMonth(rowData)).toThrow('Missing fields');
     });
 
     test('should convert numeric strings to numbers', () => {
-        const rowData = [
-            ['2022-01-01', '10', '20', '30']
-        ];
+        const rowData = {
+            fields: [
+                { name: '_time' },
+                { name: 'threshold_critical' },
+                { name: 'threshold_moderate' },
+                { name: 'value' }
+            ],
+            rows: [['2022-01-01', '10', '20', '30']]
+        }
         const result = rowDataToMapMonth(rowData);
         expect(result.get('1-2022')[0]).toEqual({
             _time: '2022-01-01',
@@ -24,18 +36,25 @@ describe('rowDataToTabMonth', () => {
     });
 
     test('should group rows by month and year', () => {
-        const rowData = [
-            ['2022-01-01', '10', '20', '30'],
+        const data = {
+            fields: [
+                { name: '_time' },
+                { name: 'threshold_critical' },
+                { name: 'threshold_moderate' },
+                { name: 'value' }
+            ],
+            rows: [['2022-01-01', '10', '20', '30'],
             ['2022-01-02', '40', '50', '60'],
-            ['2022-02-01', '70', '80', '90']
-        ];
-        const result = rowDataToMapMonth(rowData);
+            ['2022-02-01', '70', '80', '90']]
+        };
+        const result = rowDataToMapMonth(data);
 
         expect(result.get('1-2022')).toHaveLength(2);
     });
 
     test('should handle empty input', () => {
         const rowData = [];
+        console.log()
         const result = rowDataToMapMonth(rowData);
         expect(result).toEqual(new Map());
     });
@@ -148,11 +167,19 @@ describe("rowDataToTabMonth + createDays + createDaysName", () => {
     });
 
     test("create two month but not the same year", () => {
-        const rowData = [
-            ['2024-01-01', '10', '20', '30'],
-            ['2023-01-02', '40', '50', '60'],
-        ];
-        const result = rowDataToMapMonth(rowData);
+        const data = {
+            fields: [
+                { name: '_time' },
+                { name: 'threshold_critical' },
+                { name: 'threshold_moderate' },
+                { name: 'value' }
+            ],
+            rows: [
+                ['2024-01-01', '10', '20', '30'],
+                ['2023-01-02', '40', '50', '60']
+            ],
+        };
+        const result = rowDataToMapMonth(data);
 
         for (const [month, tab] of result) {
 

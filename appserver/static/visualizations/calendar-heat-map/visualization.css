@@ -20,12 +20,14 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
   border: 1px solid gray;
   grid-area: average;
   justify-self: center;
   align-self: center;
+}
+
+.average-value {
+  transform: rotate(-90deg);
 }
 
 .container-month {

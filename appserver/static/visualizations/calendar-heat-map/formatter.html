@@ -1,14 +1,15 @@
-<form class="splunk-formatter-section" section-label="Default Thresholds">
-    <splunk-control-group label="Warning Threshold" help=" ">
-        <splunk-text-input name="{{VIZ_NAMESPACE}}.warningThreshold" value="12"></splunk-text-input>
-	</splunk-control-group>
-	<splunk-control-group label="Critical Threshold" help=" ">
-        <splunk-text-input name="{{VIZ_NAMESPACE}}.criticalThreshold" value="18"></splunk-text-input>
-	</splunk-control-group>
-	 <splunk-control-group label="Threshold Direction" help=" ">
-		<splunk-select name="{{VIZ_NAMESPACE}}.OKIsLowOrHigh" value="low" section-label="Direction">
-			<option value="low">OK is Lowest Value</option>
-			<option value="high">Critical is Lowest Value</option>
-		</splunk-select>
-	</splunk-control-group>
+<form class="splunk-formatter-section" section-label="Colours">
+    <splunk-control-group label="Ok Colour" help=" ">		<splunk-color-picker name="{{VIZ_NAMESPACE}}.okColour" value="#78B24A">			</splunk-color-picker></splunk-control-group>
+	<splunk-control-group label="moderate Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.moderateColour" value="#E0C135">	</splunk-color-picker></splunk-control-group>
+	<splunk-control-group label="Critical Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.criticalColor" value="#DD0000">	</splunk-color-picker></splunk-control-group>
+	<splunk-control-group label="Normal Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.normalColor" value="#DD0000">	</splunk-color-picker></splunk-control-group>
+	<splunk-control-group label="No Data Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.noDataColor" value="#5EBFC6">		</splunk-color-picker></splunk-control-group>
+</form>
+
+<form class="splunk-formatter-section" section-label="Data">
+	<splunk-radio-input>
+		<splunk-label>Use Data</splunk-label>
+		<splunk-radio name="{{VIZ_NAMESPACE}}.isDayNb" value="false" label="No" default="true"></splunk-radio>
+		<splunk-radio name="{{VIZ_NAMESPACE}}.isDayNb" value="true" label="Yes"></splunk-radio>
+	</splunk-radio-input>
 </form>
