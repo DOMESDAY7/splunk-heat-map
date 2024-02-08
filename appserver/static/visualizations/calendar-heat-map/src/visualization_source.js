@@ -42,6 +42,10 @@ define([
 
 		updateView: function (data, config) {
 
+			const getConfigVar = (string, defaultValue) => {
+				return config[this.getPropertyNamespaceInfo().propertyNamespace + string] || defaultValue;
+			}
+
 			const { rowDataToMapMonth, createDays, createDaysName, colorDays } = require("./utils/helper");
 			const { daysInMonth, getWeeksNb, dayNames } = require("date/date");
 
@@ -49,18 +53,23 @@ define([
 			this.$el.empty();
 
 			// get color from the config
-			var criticalColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'criticalColor'] || "#c05c5c";
-			var moderateColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'moderateColor'] || "#c09a5c";
-			var normalColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'normalColor'] || "#5cc05c";
-			var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
+			const criticalColor = getConfigVar('criticalColor', "#c05c5c");
+			const moderateColor = getConfigVar('moderateColor', "#c09a5c");
+			const normalColor = getConfigVar('normalColor', "#5cc05c");
+
+			// var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
 
 			// get data or day number
-			var isDayNb = config[this.getPropertyNamespaceInfo().propertyNamespace + 'isDayNb'] || false;
+			const isDayNb = getConfigVar('isDayNb', false) === "true";
+			const isSundayGray = getConfigVar('sundayGray', false) === "true";
 
 			const root = document.querySelector(":root");
 			root.style.setProperty("--critical-color", criticalColor);
 			root.style.setProperty("--moderate-color", moderateColor);
 			root.style.setProperty("--normal-color", normalColor);
+
+			// we configure the font size depending on what we want to display
+			root.style.setProperty("--day-font-size", !isDayNb ? "0.5rem" : "1rem");
 
 			// Check if data is empty
 			const tabMonth = rowDataToMapMonth(data);
@@ -114,7 +123,7 @@ define([
 
 				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
 
-				colorDays(tabMonthData, monthContainer);
+				colorDays(tabMonthData, monthContainer, isDayNb);
 
 				// Filter the data to remove the empty values
 				const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
@@ -127,7 +136,7 @@ define([
 
 				const critical = config[this.getPropertyNamespaceInfo().propertyNamespace + 'critical'] || 98;
 				const moderate = config[this.getPropertyNamespaceInfo().propertyNamespace + 'moderate'] || 99;
-				
+
 				// set the color depending on the average value
 				if (averagePerMonth < critical) {
 					average.classList.add("critical");
@@ -136,9 +145,9 @@ define([
 				} else {
 					average.classList.add("normal");
 				}
-				
+
 				let p = document.createElement("p");
-				
+
 				p.classList.add("average-value");
 				p.textContent = averagePerMonth.toFixed(2);
 				average.append(p);
@@ -149,6 +158,14 @@ define([
 
 				res.append(globalContainerMonth)
 
+			}
+
+			
+			if (isSundayGray) {
+				document.querySelectorAll(".day[data-day-name='Sun']").forEach((el) => {
+					el.style.backgroundColor = 'red';
+					console.log(el)
+				});
 			}
 
 			let tooltip = document.createElement("div");

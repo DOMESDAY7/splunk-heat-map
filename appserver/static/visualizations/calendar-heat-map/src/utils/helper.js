@@ -1,3 +1,4 @@
+const { dayNames } = require('date/date')
 /**
  * 
  * @param {Array[]} rowData data from splunk : _time, threshold_critical, threshold_moderate, value
@@ -71,15 +72,16 @@ function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
     const moduloValues = Array.from({ length: nbDaysInMonth }).map((_, i) => (firstDayOfWeek + i) % 7 + offset);
     const floorValues = Array.from({ length: nbDaysInMonth }).map((_, i) => Math.floor((firstDayOfWeek + i) / 7) + offset);
 
+
+
     for (let i = 0; i < nbDaysInMonth; i++) {
         const day = document.createElement("div");
         day.classList.add("day");
         day.textContent = i + 1;
-
-        day.style.gridColumn = moduloValues[i];
-        day.style.gridRow = floorValues[i];
+        day.style = "grid-column: " + moduloValues[i] + "; grid-row: " + floorValues[i];
         day.setAttribute("data-day", i + 1);
         day.setAttribute("data-tooltip", `day ${i + 1}`)
+        day.setAttribute("data-day-name", dayNames[(firstDayOfWeek + i) % 7]);
         fragment.appendChild(day);
     }
 
@@ -109,7 +111,7 @@ function createDaysName(dayNames, monthContainer) {
  * @param {HTMLDivElement} monthContainer 
  * @returns void
  */
-function colorDays(tabData, monthContainer) {
+function colorDays(tabData, monthContainer, isDayNb = false) {
     const daysMap = new Map(tabData.map((item) => {
         const date = new Date(item._time);
         // Validate the date to ensure it exists
@@ -132,6 +134,7 @@ function colorDays(tabData, monthContainer) {
                 dayElement.classList.add("normal");
             }
             dayElement.setAttribute("data-tooltip", `day ${new Date(_time).getDate()} : ${value.toFixed(2)}%`);
+            if (!isDayNb) dayElement.textContent = value.toFixed(2) + "%";
         }
     }
     return true;

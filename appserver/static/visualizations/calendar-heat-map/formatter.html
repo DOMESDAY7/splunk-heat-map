@@ -1,15 +1,54 @@
-<form class="splunk-formatter-section" section-label="Colours">
-    <splunk-control-group label="Ok Colour" help=" ">		<splunk-color-picker name="{{VIZ_NAMESPACE}}.okColour" value="#78B24A">			</splunk-color-picker></splunk-control-group>
-	<splunk-control-group label="moderate Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.moderateColour" value="#E0C135">	</splunk-color-picker></splunk-control-group>
-	<splunk-control-group label="Critical Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.criticalColor" value="#DD0000">	</splunk-color-picker></splunk-control-group>
-	<splunk-control-group label="Normal Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.normalColor" value="#DD0000">	</splunk-color-picker></splunk-control-group>
-	<splunk-control-group label="No Data Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.noDataColor" value="#5EBFC6">		</splunk-color-picker></splunk-control-group>
+<form class="splunk-formatter-section" section-label="Numbers">
+  <splunk-control-group label="What do you want to see ?" help=" ">
+    <splunk-radio-input name="{{VIZ_NAMESPACE}}.isDayNb">
+      <option value="false" label="data">Data</option>
+      <option value="true" label="day number" default="true">Day number</option>
+    </splunk-radio-input> </splunk-control-group
+  ><br />
+  <splunk-control-group label="Turn Sunday gray" help=" ">
+    <splunk-radio-input name="{{VIZ_NAMESPACE}}.sundayGray">
+      <option value="false" label="No" default="true">No</option>
+      <option value="true" label="Yes">Yes</option>
+    </splunk-radio-input></splunk-control-group
+  ><br />
 </form>
 
-<form class="splunk-formatter-section" section-label="Data">
-	<splunk-radio-input>
-		<splunk-label>Use Data</splunk-label>
-		<splunk-radio name="{{VIZ_NAMESPACE}}.isDayNb" value="false" label="No" default="true"></splunk-radio>
-		<splunk-radio name="{{VIZ_NAMESPACE}}.isDayNb" value="true" label="Yes"></splunk-radio>
-	</splunk-radio-input>
+<form class="splunk-formatter-section" section-label="Colors">
+  <splunk-control-group label="Normal Colour" help=" ">
+    <splunk-color-picker
+      name="{{VIZ_NAMESPACE}}.normalColor"
+      value="#118832"
+    ></splunk-color-picker>
+  </splunk-control-group>
+  <splunk-control-group label="Moderate Colour" help=" ">
+    <splunk-color-picker
+      name="{{VIZ_NAMESPACE}}.moderateColor"
+      value="#cba700"
+    ></splunk-color-picker
+  ></splunk-control-group>
+  <splunk-control-group label="Critical Colour" help=" ">
+    <splunk-color-picker name="{{VIZ_NAMESPACE}}.criticalColor" value="#DD0000">
+    </splunk-color-picker
+  ></splunk-control-group>
+
+  <splunk-control-group label="Inverse the threshold" help=" ">
+    <splunk-radio-input>
+      <option
+        name="{{VIZ_NAMESPACE}}.inverseThreshold"
+        value="false"
+        label="No"
+        default="true"
+      >
+        Greater is better
+      </option>
+      <option
+        name="{{VIZ_NAMESPACE}}.inverseThreshold"
+        value="true"
+        label="Yes"
+      >
+        Lower is better
+      </option>
+    </splunk-radio-input>
+  </splunk-control-group>
+  <!-- <splunk-control-group label="No Data Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.noDataColor" value="#5EBFC6">		</splunk-color-picker></splunk-control-group> -->
 </form>
