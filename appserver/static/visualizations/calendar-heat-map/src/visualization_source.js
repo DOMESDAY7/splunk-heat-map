@@ -70,7 +70,6 @@ define([
 
 			// we configure the font size depending on what we want to display
 			root.style.setProperty("--day-font-size", !isDayNb ? "0.5rem" : "1rem");
-
 			// Check if data is empty
 			const tabMonth = rowDataToMapMonth(data);
 
@@ -121,9 +120,9 @@ define([
 
 				const nbDaysInMonth = daysInMonth(monthRow + 1, yearRow);
 
-				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
+				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray);
 
-				colorDays(tabMonthData, monthContainer, isDayNb);
+				colorDays(tabMonthData, monthContainer, isDayNb, isSundayGray);
 
 				// Filter the data to remove the empty values
 				const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
@@ -158,14 +157,6 @@ define([
 
 				res.append(globalContainerMonth)
 
-			}
-
-			
-			if (isSundayGray) {
-				document.querySelectorAll(".day[data-day-name='Sun']").forEach((el) => {
-					el.style.backgroundColor = 'red';
-					console.log(el)
-				});
 			}
 
 			let tooltip = document.createElement("div");

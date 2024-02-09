@@ -116,7 +116,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 				// we configure the font size depending on what we want to display
 				root.style.setProperty("--day-font-size", !isDayNb ? "0.5rem" : "1rem");
-
 				// Check if data is empty
 				const tabMonth = rowDataToMapMonth(data);
 
@@ -167,9 +166,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 					const nbDaysInMonth = daysInMonth(monthRow + 1, yearRow);
 
-					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
+					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray);
 
-					colorDays(tabMonthData, monthContainer, isDayNb);
+					colorDays(tabMonthData, monthContainer, isDayNb, isSundayGray);
 
 					// Filter the data to remove the empty values
 					const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
@@ -204,15 +203,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 					res.append(globalContainerMonth)
 
-				}
-
-
-				if (isSundayGray) {
-					console.log(document.querySelectorAll(".day[data-day-name='Sun']"))
-					document.querySelectorAll(".day[data-day-name='Sun']").forEach((el) => {
-						el.style.backgroundColor = 'red';
-						console.log(el)
-					});
 				}
 
 				let tooltip = document.createElement("div");
@@ -12202,15 +12192,13 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @param {number} firstDayOfWeek day of the week of the first day of the month
 	 * @param {HTMLDivElement} monthContainer div of the month
 	 */
-	function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
+	function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray = false) {
 	    const offset = 2; // Offset to align with day names and start from the second row
 	    const fragment = document.createDocumentFragment();
 
 	    // Calculate the values outside the loop to save computation time
 	    const moduloValues = Array.from({ length: nbDaysInMonth }).map((_, i) => (firstDayOfWeek + i) % 7 + offset);
 	    const floorValues = Array.from({ length: nbDaysInMonth }).map((_, i) => Math.floor((firstDayOfWeek + i) / 7) + offset);
-
-
 
 	    for (let i = 0; i < nbDaysInMonth; i++) {
 	        const day = document.createElement("div");
@@ -12219,7 +12207,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        day.style = "grid-column: " + moduloValues[i] + "; grid-row: " + floorValues[i];
 	        day.setAttribute("data-day", i + 1);
 	        day.setAttribute("data-tooltip", `day ${i + 1}`)
-	        day.setAttribute("data-day-name", dayNames[(firstDayOfWeek + i) % 7]);
+	        const dayName = dayNames[(firstDayOfWeek + i) % 7]
+	        day.setAttribute("data-day-name", dayName);
+	        if (dayName == "Sun" && isSundayGray) {
+	            day.classList.add("sunday");
+	        }
 	        fragment.appendChild(day);
 	    }
 
@@ -12249,7 +12241,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @param {HTMLDivElement} monthContainer 
 	 * @returns void
 	 */
-	function colorDays(tabData, monthContainer, isDayNb = false) {
+	function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = false) {
 	    const daysMap = new Map(tabData.map((item) => {
 	        const date = new Date(item._time);
 	        // Validate the date to ensure it exists
@@ -12264,6 +12256,10 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        const dayElement = monthContainer.querySelector(selector);
 
 	        if (dayElement && value) {
+	            if (isSundayGray && dayElement.classList.contains("sunday")) {
+	                continue;
+	            }
+
 	            if (value >= 0 && value <= threshold_critical) {
 	                dayElement.classList.add("critical");
 	            } else if (value >= threshold_critical && value <= threshold_moderate) {
@@ -12273,6 +12269,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            }
 	            dayElement.setAttribute("data-tooltip", `day ${new Date(_time).getDate()} : ${value.toFixed(2)}%`);
 	            if (!isDayNb) dayElement.textContent = value.toFixed(2) + "%";
+
 	        }
 	    }
 	    return true;

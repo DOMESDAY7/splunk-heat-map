@@ -3,6 +3,7 @@
   --moderate-color: #c09a5c;
   --normal-color: #5cc05c;
   --day-font-size: 1rem;
+  --bg-sunday: #6b6b6b;
 }
 .global-container {
   display: flex;
@@ -29,6 +30,11 @@
 
 .average-value {
   transform: rotate(-90deg);
+}
+
+.sunday{
+  background-color: var(--bg-sunday);
+  color: gray;
 }
 
 .container-month {
