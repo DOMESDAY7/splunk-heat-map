@@ -106,8 +106,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				// var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
 
 				// get data or day number
-				const isDayNb = getConfigVar('isDayNb', false) === "true";
+				const isDayNb = getConfigVar('isDayNb', true) === "true";
 				const isSundayGray = getConfigVar('sundayGray', false) === "true";
+				const isGreaterBetter = getConfigVar('isGreaterBetter', true) === "true";
 
 				const root = document.querySelector(":root");
 				root.style.setProperty("--critical-color", criticalColor);
@@ -168,7 +169,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray);
 
-					colorDays(tabMonthData, monthContainer, isDayNb, isSundayGray);
+					colorDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter);
 
 					// Filter the data to remove the empty values
 					const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
@@ -194,7 +195,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					let p = document.createElement("p");
 
 					p.classList.add("average-value");
-					p.textContent = averagePerMonth.toFixed(2);
+					p.textContent = averagePerMonth.toFixed(2) + "%";
 					average.append(p);
 
 					// Append 
@@ -12241,7 +12242,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @param {HTMLDivElement} monthContainer 
 	 * @returns void
 	 */
-	function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = false) {
+	function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = false, isGreaterBetter = true) {
 	    const daysMap = new Map(tabData.map((item) => {
 	        const date = new Date(item._time);
 	        // Validate the date to ensure it exists
@@ -12259,13 +12260,23 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            if (isSundayGray && dayElement.classList.contains("sunday")) {
 	                continue;
 	            }
-
-	            if (value >= 0 && value <= threshold_critical) {
-	                dayElement.classList.add("critical");
-	            } else if (value >= threshold_critical && value <= threshold_moderate) {
-	                dayElement.classList.add("moderate");
+	            console.log(isGreaterBetter)
+	            if (!isGreaterBetter) {
+	                if (value <= 0 && value >= threshold_critical) {
+	                    dayElement.classList.add("critical");
+	                } else if (value <= threshold_critical && value >= threshold_moderate) {
+	                    dayElement.classList.add("moderate");
+	                } else {
+	                    dayElement.classList.add("normal");
+	                }
 	            } else {
-	                dayElement.classList.add("normal");
+	                if (value >= 0 && value <= threshold_critical) {
+	                    dayElement.classList.add("critical");
+	                } else if (value >= threshold_critical && value <= threshold_moderate) {
+	                    dayElement.classList.add("moderate");
+	                } else {
+	                    dayElement.classList.add("normal");
+	                }
 	            }
 	            dayElement.setAttribute("data-tooltip", `day ${new Date(_time).getDate()} : ${value.toFixed(2)}%`);
 	            if (!isDayNb) dayElement.textContent = value.toFixed(2) + "%";

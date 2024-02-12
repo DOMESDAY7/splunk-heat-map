@@ -32,22 +32,11 @@
   ></splunk-control-group>
 
   <splunk-control-group label="Inverse the threshold" help=" ">
-    <splunk-radio-input>
-      <option
-        name="{{VIZ_NAMESPACE}}.inverseThreshold"
-        value="false"
-        label="No"
-        default="true"
-      >
+    <splunk-radio-input name="{{VIZ_NAMESPACE}}.isGreaterBetter">
+      <option value="true" label="greater is Better" default="true">
         Greater is better
       </option>
-      <option
-        name="{{VIZ_NAMESPACE}}.inverseThreshold"
-        value="true"
-        label="Yes"
-      >
-        Lower is better
-      </option>
+      <option value="false" label="Yes">Lower is better</option>
     </splunk-radio-input>
   </splunk-control-group>
   <!-- <splunk-control-group label="No Data Colour" help=" ">	<splunk-color-picker name="{{VIZ_NAMESPACE}}.noDataColor" value="#5EBFC6">		</splunk-color-picker></splunk-control-group> -->

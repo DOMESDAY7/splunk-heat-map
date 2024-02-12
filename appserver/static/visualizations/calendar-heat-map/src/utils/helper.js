@@ -113,7 +113,7 @@ function createDaysName(dayNames, monthContainer) {
  * @param {HTMLDivElement} monthContainer 
  * @returns void
  */
-function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = false) {
+function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = false, isGreaterBetter = true) {
     const daysMap = new Map(tabData.map((item) => {
         const date = new Date(item._time);
         // Validate the date to ensure it exists
@@ -131,13 +131,23 @@ function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = fals
             if (isSundayGray && dayElement.classList.contains("sunday")) {
                 continue;
             }
-
-            if (value >= 0 && value <= threshold_critical) {
-                dayElement.classList.add("critical");
-            } else if (value >= threshold_critical && value <= threshold_moderate) {
-                dayElement.classList.add("moderate");
+            console.log(isGreaterBetter)
+            if (!isGreaterBetter) {
+                if (value <= 0 && value >= threshold_critical) {
+                    dayElement.classList.add("critical");
+                } else if (value <= threshold_critical && value >= threshold_moderate) {
+                    dayElement.classList.add("moderate");
+                } else {
+                    dayElement.classList.add("normal");
+                }
             } else {
-                dayElement.classList.add("normal");
+                if (value >= 0 && value <= threshold_critical) {
+                    dayElement.classList.add("critical");
+                } else if (value >= threshold_critical && value <= threshold_moderate) {
+                    dayElement.classList.add("moderate");
+                } else {
+                    dayElement.classList.add("normal");
+                }
             }
             dayElement.setAttribute("data-tooltip", `day ${new Date(_time).getDate()} : ${value.toFixed(2)}%`);
             if (!isDayNb) dayElement.textContent = value.toFixed(2) + "%";

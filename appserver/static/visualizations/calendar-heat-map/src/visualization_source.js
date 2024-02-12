@@ -60,8 +60,9 @@ define([
 			// var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
 
 			// get data or day number
-			const isDayNb = getConfigVar('isDayNb', false) === "true";
+			const isDayNb = getConfigVar('isDayNb', true) === "true";
 			const isSundayGray = getConfigVar('sundayGray', false) === "true";
+			const isGreaterBetter = getConfigVar('isGreaterBetter', true) === "true";
 
 			const root = document.querySelector(":root");
 			root.style.setProperty("--critical-color", criticalColor);
@@ -122,7 +123,7 @@ define([
 
 				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray);
 
-				colorDays(tabMonthData, monthContainer, isDayNb, isSundayGray);
+				colorDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter);
 
 				// Filter the data to remove the empty values
 				const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
@@ -148,7 +149,7 @@ define([
 				let p = document.createElement("p");
 
 				p.classList.add("average-value");
-				p.textContent = averagePerMonth.toFixed(2);
+				p.textContent = averagePerMonth.toFixed(2) + "%";
 				average.append(p);
 
 				// Append 
