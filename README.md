@@ -1,4 +1,5 @@
 # Calendar heat map custom Splunk vizualisation
+
 ![splunk-calendar-heat-map](https://github.com/DOMESDAY7/splunk-heat-map/assets/79838340/b1cd8f04-999b-48b4-baf6-da0f92791f16)
 
 ## Prerequisites
@@ -33,9 +34,9 @@ If you want to see the heat map display, go to search and paste the following se
       base_time = strptime("2024-12-01", "%Y-%m-%d")
 | eval _time = base_time + (random_days * 86400) + random_seconds
 | eval threshold_critical=round(random() % 100, 2),
-      threshold_warning=round(random() % 50, 2),
+      threshold_moderate=round(random() % 50, 2),
       value=round(random() % 100, 2)
-| table _time, threshold_critical, threshold_warning, value
+| table _time, threshold_critical, threshold_moderate, value
 ```
 
 Go to visualization and select Heat map.
@@ -50,9 +51,9 @@ If you want to test the multimonth visualization you just have to do the same th
       base_time = strptime("2024-02-01", "%Y-%m-%d")
 | eval _time = base_time + (random_month * 2629743) + (random_days * 86400) + random_seconds
 | eval threshold_critical=round(random() % 100, 2),
-      threshold_warning=round(random() % 50, 2),
+      threshold_moderate=round(random() % 50, 2),
       value=round(random() % 100, 2)
-| table _time, threshold_critical, threshold_warning, value
+| table _time, threshold_critical, threshold_moderate, value
 ```
 
 ## How to modify this project ?
@@ -86,14 +87,14 @@ generate the manifest with the app
 slim generate-manifest calendar-heat-map -o calendar-heat-map/app.manifest
 ```
 
-If you have a `[WARNING]` tag tou need to add the stanza `[package]` to the /calendar-heat-map/default/app.conf file normaly it's already done. If not here his wath you should paste in the app.conf :
+If you have a `[moderate]` tag tou need to add the stanza `[package]` to the /calendar-heat-map/default/app.conf file normaly it's already done. If not here his wath you should paste in the app.conf :
 
 ```bash
 [package]
 id = devtutorial
 ```
 
-Regenerate the manifest if you add a Warning.
+Regenerate the manifest if you add a moderate.
 
 Now, to use the package in your Splunk cloud instance you need to do few more things :
 
@@ -102,7 +103,7 @@ Now, to use the package in your Splunk cloud instance you need to do few more th
 - configure the rights for each directory like :
 
 ```bash
-icacls "heat-map" /grant "userName:(R,W)" /T
+icacls "calendar-heat-map" /grant "userName:(R,W)" /T
 ```
 
 and
@@ -114,3 +115,4 @@ icacls "heat-map" /remove:g *S-1-1-0 *S-1-5-32-545 /T
 ## Usefull link
 
 [Formatter API ref](https://docs.splunk.com/Documentation/SplunkCloud/9.1.2308/AdvancedDev/CustomVizFormatterApiRef)
+[Splunk dev](https://dev.splunk.com/enterprise/docs/devtools/customalertactions/createuicaa)

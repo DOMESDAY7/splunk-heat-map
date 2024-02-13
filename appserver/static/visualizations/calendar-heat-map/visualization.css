@@ -2,6 +2,8 @@
   --critical-color: #c05c5c;
   --moderate-color: #c09a5c;
   --normal-color: #5cc05c;
+  --day-font-size: 1rem;
+  --bg-sunday: #6b6b6b;
 }
 .global-container {
   display: flex;
@@ -20,12 +22,19 @@
   display: flex;
   justify-content: center;
   align-items: center;
-  writing-mode: vertical-rl;
-  text-orientation: mixed;
   border: 1px solid gray;
   grid-area: average;
   justify-self: center;
   align-self: center;
+}
+
+.average-value {
+  transform: rotate(-90deg);
+}
+
+.sunday{
+  background-color: var(--bg-sunday);
+  color: gray;
 }
 
 .container-month {
@@ -46,6 +55,7 @@
   border: 0.5px solid gray;
   color: gray;
   cursor: pointer;
+  font-size: var(--day-font-size);
   /* aspect-ratio: 1/1; */
 }
 

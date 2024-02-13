@@ -1,28 +1,62 @@
+const { dayNames } = require('date/date')
 /**
  * 
  * @param {Array[]} rowData data from splunk : _time, threshold_critical, threshold_moderate, value
- * @returns {Map} tabMonth : {month : [{_time, threshold_critical, threshold_moderate, value}]}
+ * @returns {Map} tabMonth : Map => [[month : [{_time, threshold_critical, threshold_moderate, value}]]]
  */
-const rowDataToMapMonth = (rowData) => {
+const rowDataToMapMonth = (data) => {
+    if (Object.keys(data).length == 0 || data.rows.length == 0 || data.fields.length == 0) return new Map();
+
+    const tabFields = data.fields.map((field) => field.name);
+    const fieldIndices = {
+        _time: tabFields.indexOf("_time"),
+        threshold_critical: tabFields.indexOf("threshold_critical"),
+        threshold_moderate: tabFields.indexOf("threshold_moderate"),
+        value: tabFields.indexOf("value"),
+    };
+
+    if (
+        !Object.values(fieldIndices).every((index) => index !== -1) ||
+        data.rows.some((row) => row.length < 4)
+    ) {
+        throw new Error("Missing fields");
+    }
+
     const tabMonth = new Map();
-    for (const row of rowData) {
-        if (row.length < 4) throw Error("Missing fields");
-        const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
 
-        const obj = { _time, threshold_critical, threshold_moderate, value };
-        const dateRow = new Date(_time);
+    for (const row of data.rows) {
+        const [_time, threshold_critical, threshold_moderate, value] = row.map(
+            (item, index) => {
+                if (index == fieldIndices._time) {
+                    return item
+                } else if (index === fieldIndices.threshold_critical ||
+                    index === fieldIndices.threshold_moderate ||
+                    index === fieldIndices.value) {
+                    return parseFloat(item)
+                } else {
+                    return item
+                }
+            });
 
-        const propertyName = `${dateRow.getMonth() + 1}-${dateRow.getYear() + 1900}`;
+        const eventDate = new Date(_time);
+        const propertyName = `${eventDate.getMonth() + 1}-${eventDate.getFullYear()}`;
 
-        if (tabMonth.has(propertyName)) {
-            tabMonth.get(propertyName).push(obj);
-        } else {
-            tabMonth.set(propertyName, [obj]);
-        }
+        const obj = {
+            _time,
+            threshold_critical,
+            threshold_moderate,
+            value,
+        };
+
+        tabMonth.has(propertyName)
+            ? tabMonth.get(propertyName).push(obj)
+            : tabMonth.set(propertyName, [obj]);
     }
 
     return tabMonth;
-}
+};
+
+
 
 /**
  * 
@@ -30,7 +64,7 @@ const rowDataToMapMonth = (rowData) => {
  * @param {number} firstDayOfWeek day of the week of the first day of the month
  * @param {HTMLDivElement} monthContainer div of the month
  */
-function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
+function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray = false) {
     const offset = 2; // Offset to align with day names and start from the second row
     const fragment = document.createDocumentFragment();
 
@@ -42,11 +76,14 @@ function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
         const day = document.createElement("div");
         day.classList.add("day");
         day.textContent = i + 1;
-
-        day.style.gridColumn = moduloValues[i];
-        day.style.gridRow = floorValues[i];
+        day.style = "grid-column: " + moduloValues[i] + "; grid-row: " + floorValues[i];
         day.setAttribute("data-day", i + 1);
         day.setAttribute("data-tooltip", `day ${i + 1}`)
+        const dayName = dayNames[(firstDayOfWeek + i) % 7]
+        day.setAttribute("data-day-name", dayName);
+        if (dayName == "Sun" && isSundayGray) {
+            day.classList.add("sunday");
+        }
         fragment.appendChild(day);
     }
 
@@ -76,7 +113,7 @@ function createDaysName(dayNames, monthContainer) {
  * @param {HTMLDivElement} monthContainer 
  * @returns void
  */
-function colorDays(tabData, monthContainer) {
+function formatDays(tabData, monthContainer, isDayNb = true, isSundayGray = false, isGreaterBetter = true) {
     const daysMap = new Map(tabData.map((item) => {
         const date = new Date(item._time);
         // Validate the date to ensure it exists
@@ -87,18 +124,33 @@ function colorDays(tabData, monthContainer) {
     }));
 
     for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
+
         const dayElement = monthContainer.querySelector(selector);
 
-        if (dayElement) {
-            if (value > 0 && value <= threshold_critical) {
-                dayElement.classList.add("critical");
-            } else if (value > threshold_critical && value <= threshold_moderate) {
-                dayElement.classList.add("moderate");
-            } else {
-                dayElement.classList.add("normal");
+        if (dayElement && value) {
+            if (isSundayGray && dayElement.classList.contains("sunday")) {
+                continue;
             }
-        } else {
-            throw Error("dayElement is undefined");
+            if (!isGreaterBetter) {
+                if (value <= 0 && value >= threshold_critical) {
+                    dayElement.classList.add("critical");
+                } else if (value <= threshold_critical && value >= threshold_moderate) {
+                    dayElement.classList.add("moderate");
+                } else {
+                    dayElement.classList.add("normal");
+                }
+            } else {
+                if (value >= 0 && value <= threshold_critical) {
+                    dayElement.classList.add("critical");
+                } else if (value >= threshold_critical && value <= threshold_moderate) {
+                    dayElement.classList.add("moderate");
+                } else {
+                    dayElement.classList.add("normal");
+                }
+            }
+            dayElement.setAttribute("data-tooltip", `day ${new Date(_time).getDate()} : ${value.toFixed(2)}%`);
+            if (!isDayNb) dayElement.textContent = value.toFixed(2) + "%";
+
         }
     }
     return true;
@@ -108,5 +160,5 @@ module.exports = {
     rowDataToMapMonth,
     createDays,
     createDaysName,
-    colorDays
+    formatDays
 }

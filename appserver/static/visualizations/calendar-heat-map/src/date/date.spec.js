@@ -2,12 +2,16 @@ const { daysInMonth, getWeeksNb } = require('./date');
 
 describe('daysInMonth', () => {
 
-    test('February in a leap year', () => {
+    test('February in a leap year (divisible by 4)', () => {
         expect(daysInMonth(2, 2020)).toBe(29);
     });
 
-    test('February in a non-leap year', () => {
-        expect(daysInMonth(2, 2021)).toBe(28);
+    test('February in a non-leap year (divisible by 100 but not by 400)', () => {
+        expect(daysInMonth(2, 1900)).toBe(28);
+    });
+
+    test('February in a leap year (divisible by 400)', () => {
+        expect(daysInMonth(2, 2000)).toBe(29);
     });
 
     test('Month with 30 days', () => {
@@ -41,6 +45,10 @@ describe('daysInMonth', () => {
     test('Negative year', () => {
         expect(() => daysInMonth(3, -2021)).toThrow();
     });
+
+    test('Invalid input for both month and year', () => {
+        expect(() => daysInMonth(0, -2021)).toThrow();
+    });
 });
 
 
@@ -66,7 +74,6 @@ describe('getWeeksNb', () => {
         expect(() => getWeeksNb(13, 2022)).toThrow();
     });
 
-
     test('Negative year', () => {
         expect(() => getWeeksNb(2, -2024)).toThrow();
     });
@@ -81,5 +88,9 @@ describe('getWeeksNb', () => {
 
     test('Negative month', () => {
         expect(() => getWeeksNb(-1, 2024)).toThrow();
+    });
+
+    test('Invalid input for both month and year', () => {
+        expect(() => getWeeksNb(0, -2024)).toThrow();
     });
 });

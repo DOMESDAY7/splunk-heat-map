@@ -70,12 +70,11 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 			formatData: function (data, config) {
 				if (!data) return;
-				console.log(data, config)
 
 				// Get the fields
 				const fields = data.fields.map((field) => field.name);
 
-				const mandatoryFields = ["_time", "threshold_critical", "threshold_warning", "value"];
+				const mandatoryFields = ["_time", "threshold_critical", "threshold_moderate", "value"];
 
 				// Check if all mandatory fields are present
 				const missingFields = mandatoryFields.filter((field) => !fields.includes(field));
@@ -88,19 +87,38 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 			},
 
 			updateView: function (data, config) {
-				const { rowDataToMapMonth, createDays, createDaysName, colorDays } = __webpack_require__(5);
+
+				const getConfigVar = (string, defaultValue) => {
+					return config[this.getPropertyNamespaceInfo().propertyNamespace + string] || defaultValue;
+				}
+
+				const { rowDataToMapMonth, createDays, createDaysName, formatDays } = __webpack_require__(5);
 				const { daysInMonth, getWeeksNb, dayNames } = __webpack_require__(6);
 
 				// Clear the display div
 				this.$el.empty();
 
-				// Extract rows from data
-				const dataRows = data.rows;
+				// get color from the config
+				const criticalColor = getConfigVar('criticalColor', "#c05c5c");
+				const moderateColor = getConfigVar('moderateColor', "#c09a5c");
+				const normalColor = getConfigVar('normalColor', "#5cc05c");
 
+				// var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
+
+				// get data or day number
+				const isDayNb = getConfigVar('isDayNb', "true") == "true" ;
+				const isSundayGray = getConfigVar('sundayGray', "false") === "true";
+				const isGreaterBetter = getConfigVar('isGreaterBetter', "true") === "true";
+
+				const root = document.querySelector(":root");
+				root.style.setProperty("--critical-color", criticalColor);
+				root.style.setProperty("--moderate-color", moderateColor);
+				root.style.setProperty("--normal-color", normalColor);
+
+				// we configure the font size depending on what we want to display
+				root.style.setProperty("--day-font-size", !isDayNb ? "0.5rem" : "1rem");
 				// Check if data is empty
-				if (!dataRows || dataRows.length === 0 || dataRows[0].length === 0) return this;
-
-				const tabMonth = rowDataToMapMonth(dataRows);
+				const tabMonth = rowDataToMapMonth(data);
 
 				// Create a first div with the class "global-container"
 				let res = document.createElement("div");
@@ -149,26 +167,36 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 					const nbDaysInMonth = daysInMonth(monthRow + 1, yearRow);
 
-					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer);
+					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray);
 
-					colorDays(tabMonthData, monthContainer);
+					formatDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter);
 
-					const averagePerMonth = tabMonthData.reduce((acc, { value }) => acc + value, 0) / tabMonthData.length;
+					// Filter the data to remove the empty values
+					const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
+
+					const averagePerMonth = tabMonthDataFiltered.reduce((acc, { value }) => acc + value, 0) / tabMonthDataFiltered.length;
 
 					// create a div for the average value with the class "average"
 					let average = document.createElement("div");
 					average.classList.add("average");
 
+					const critical = config[this.getPropertyNamespaceInfo().propertyNamespace + 'critical'] || 98;
+					const moderate = config[this.getPropertyNamespaceInfo().propertyNamespace + 'moderate'] || 99;
+
 					// set the color depending on the average value
-					if (averagePerMonth > 50) {
+					if (averagePerMonth < critical) {
 						average.classList.add("critical");
-					} else if (averagePerMonth > 30) {
+					} else if (critical < averagePerMonth < moderate) {
 						average.classList.add("moderate");
 					} else {
 						average.classList.add("normal");
 					}
 
-					average.innerText = averagePerMonth.toFixed(2);
+					let p = document.createElement("p");
+
+					p.classList.add("average-value");
+					p.textContent = averagePerMonth.toFixed(2) + "%";
+					average.append(p);
 
 					// Append 
 					globalContainerMonth.append(monthContainer);
@@ -197,7 +225,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 						// Adjusting for the offset and ensuring it's positioned correctly relative to `res`
 						tooltip.style.left = `${e.clientX - resRect.left + offsetPx}px`;
 						tooltip.style.top = `${e.clientY - resRect.top + offsetPx}px`;
-					}else{
+					} else {
 						tooltip.style.display = "none";
 					}
 				});
@@ -207,12 +235,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					tooltip.style.display = "none";
 				});
 
-
-
 				this.$el.append(res);
 			}
-
-
 
 		});
 	}.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -12101,33 +12125,67 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 /***/ }),
 /* 5 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
+	const { dayNames } = __webpack_require__(6)
 	/**
 	 * 
 	 * @param {Array[]} rowData data from splunk : _time, threshold_critical, threshold_moderate, value
-	 * @returns {Map} tabMonth : {month : [{_time, threshold_critical, threshold_moderate, value}]}
+	 * @returns {Map} tabMonth : Map => [[month : [{_time, threshold_critical, threshold_moderate, value}]]]
 	 */
-	const rowDataToMapMonth = (rowData) => {
+	const rowDataToMapMonth = (data) => {
+	    if (Object.keys(data).length == 0 || data.rows.length == 0 || data.fields.length == 0) return new Map();
+
+	    const tabFields = data.fields.map((field) => field.name);
+	    const fieldIndices = {
+	        _time: tabFields.indexOf("_time"),
+	        threshold_critical: tabFields.indexOf("threshold_critical"),
+	        threshold_moderate: tabFields.indexOf("threshold_moderate"),
+	        value: tabFields.indexOf("value"),
+	    };
+
+	    if (
+	        !Object.values(fieldIndices).every((index) => index !== -1) ||
+	        data.rows.some((row) => row.length < 4)
+	    ) {
+	        throw new Error("Missing fields");
+	    }
+
 	    const tabMonth = new Map();
-	    for (const row of rowData) {
-	        if (row.length < 4) throw Error("Missing fields");
-	        const [_time, threshold_critical, threshold_moderate, value] = row.map(item => isNaN(item) ? item : Number(item));
 
-	        const obj = { _time, threshold_critical, threshold_moderate, value };
-	        const dateRow = new Date(_time);
+	    for (const row of data.rows) {
+	        const [_time, threshold_critical, threshold_moderate, value] = row.map(
+	            (item, index) => {
+	                if (index == fieldIndices._time) {
+	                    return item
+	                } else if (index === fieldIndices.threshold_critical ||
+	                    index === fieldIndices.threshold_moderate ||
+	                    index === fieldIndices.value) {
+	                    return parseFloat(item)
+	                } else {
+	                    return item
+	                }
+	            });
 
-	        const propertyName = `${dateRow.getMonth() + 1}-${dateRow.getYear() + 1900}`;
+	        const eventDate = new Date(_time);
+	        const propertyName = `${eventDate.getMonth() + 1}-${eventDate.getFullYear()}`;
 
-	        if (tabMonth.has(propertyName)) {
-	            tabMonth.get(propertyName).push(obj);
-	        } else {
-	            tabMonth.set(propertyName, [obj]);
-	        }
+	        const obj = {
+	            _time,
+	            threshold_critical,
+	            threshold_moderate,
+	            value,
+	        };
+
+	        tabMonth.has(propertyName)
+	            ? tabMonth.get(propertyName).push(obj)
+	            : tabMonth.set(propertyName, [obj]);
 	    }
 
 	    return tabMonth;
-	}
+	};
+
+
 
 	/**
 	 * 
@@ -12135,7 +12193,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @param {number} firstDayOfWeek day of the week of the first day of the month
 	 * @param {HTMLDivElement} monthContainer div of the month
 	 */
-	function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer) {
+	function createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray = false) {
 	    const offset = 2; // Offset to align with day names and start from the second row
 	    const fragment = document.createDocumentFragment();
 
@@ -12147,11 +12205,14 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	        const day = document.createElement("div");
 	        day.classList.add("day");
 	        day.textContent = i + 1;
-
-	        day.style.gridColumn = moduloValues[i];
-	        day.style.gridRow = floorValues[i];
+	        day.style = "grid-column: " + moduloValues[i] + "; grid-row: " + floorValues[i];
 	        day.setAttribute("data-day", i + 1);
 	        day.setAttribute("data-tooltip", `day ${i + 1}`)
+	        const dayName = dayNames[(firstDayOfWeek + i) % 7]
+	        day.setAttribute("data-day-name", dayName);
+	        if (dayName == "Sun" && isSundayGray) {
+	            day.classList.add("sunday");
+	        }
 	        fragment.appendChild(day);
 	    }
 
@@ -12181,7 +12242,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @param {HTMLDivElement} monthContainer 
 	 * @returns void
 	 */
-	function colorDays(tabData, monthContainer) {
+	function formatDays(tabData, monthContainer, isDayNb = true, isSundayGray = false, isGreaterBetter = true) {
 	    const daysMap = new Map(tabData.map((item) => {
 	        const date = new Date(item._time);
 	        // Validate the date to ensure it exists
@@ -12192,18 +12253,33 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    }));
 
 	    for (const [selector, { _time, value, threshold_critical, threshold_moderate }] of daysMap) {
+
 	        const dayElement = monthContainer.querySelector(selector);
 
-	        if (dayElement) {
-	            if (value > 0 && value <= threshold_critical) {
-	                dayElement.classList.add("critical");
-	            } else if (value > threshold_critical && value <= threshold_moderate) {
-	                dayElement.classList.add("moderate");
-	            } else {
-	                dayElement.classList.add("normal");
+	        if (dayElement && value) {
+	            if (isSundayGray && dayElement.classList.contains("sunday")) {
+	                continue;
 	            }
-	        } else {
-	            throw Error("dayElement is undefined");
+	            if (!isGreaterBetter) {
+	                if (value <= 0 && value >= threshold_critical) {
+	                    dayElement.classList.add("critical");
+	                } else if (value <= threshold_critical && value >= threshold_moderate) {
+	                    dayElement.classList.add("moderate");
+	                } else {
+	                    dayElement.classList.add("normal");
+	                }
+	            } else {
+	                if (value >= 0 && value <= threshold_critical) {
+	                    dayElement.classList.add("critical");
+	                } else if (value >= threshold_critical && value <= threshold_moderate) {
+	                    dayElement.classList.add("moderate");
+	                } else {
+	                    dayElement.classList.add("normal");
+	                }
+	            }
+	            dayElement.setAttribute("data-tooltip", `day ${new Date(_time).getDate()} : ${value.toFixed(2)}%`);
+	            if (!isDayNb) dayElement.textContent = value.toFixed(2) + "%";
+
 	        }
 	    }
 	    return true;
@@ -12213,7 +12289,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    rowDataToMapMonth,
 	    createDays,
 	    createDaysName,
-	    colorDays
+	    formatDays
 	}
 
 /***/ }),
@@ -12228,8 +12304,8 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 	/**
 	 * 
-	 * @param month the month number (1-12)
-	 * @param year  the year
+	 * @param {number} month the month number (1-12)
+	 * @param {number} year the year
 	 * @return an array of number, each number represent the number of the week in the month depending on the month and the year
 	 */
 	const getWeeksNb = (month, year) => {
@@ -12266,13 +12342,32 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	};
 
 
-	// Helper function to get the ISO week number
+	/**
+	 * 
+	 * @param {Date} d date to get the week number from
+	 * @returns 
+	 */
 	function getWeekNumber(d) {
+	    // Convert the date to UTC
 	    d = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-	    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+	    // Adjust the date to be Thursday of the same week (ISO week)
+	    // ISO weeks start on Monday; 4 represents Thursday
+	    const dayOffsetToThursday = 4;
+	    const isoWeekStartDay = 1; // Monday as the start day of ISO week
+	    const millisecondsPerDay = 86400000; // Number of milliseconds in a day
+	    const daysInWeek = 7;
+
+	    d.setUTCDate(d.getUTCDate() + dayOffsetToThursday - (d.getUTCDay() || daysInWeek));
+	    
+	    // Calculate the start of the year
 	    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
-	    return Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+	    
+	    // Calculate the ISO week number
+	    // Add 1 because division starts at 0
+	    return Math.ceil(((d - yearStart) / millisecondsPerDay + 1) / daysInWeek);
 	}
+
+
 
 
 	const dayNames = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
