@@ -113,7 +113,7 @@ function createDaysName(dayNames, monthContainer) {
  * @param {HTMLDivElement} monthContainer 
  * @returns void
  */
-function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = false, isGreaterBetter = true) {
+function formatDays(tabData, monthContainer, isDayNb = true, isSundayGray = false, isGreaterBetter = true) {
     const daysMap = new Map(tabData.map((item) => {
         const date = new Date(item._time);
         // Validate the date to ensure it exists
@@ -131,7 +131,6 @@ function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = fals
             if (isSundayGray && dayElement.classList.contains("sunday")) {
                 continue;
             }
-            console.log(isGreaterBetter)
             if (!isGreaterBetter) {
                 if (value <= 0 && value >= threshold_critical) {
                     dayElement.classList.add("critical");
@@ -161,5 +160,5 @@ module.exports = {
     rowDataToMapMonth,
     createDays,
     createDaysName,
-    colorDays
+    formatDays
 }

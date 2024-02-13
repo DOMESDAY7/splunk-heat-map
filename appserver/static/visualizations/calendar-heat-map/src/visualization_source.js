@@ -46,7 +46,7 @@ define([
 				return config[this.getPropertyNamespaceInfo().propertyNamespace + string] || defaultValue;
 			}
 
-			const { rowDataToMapMonth, createDays, createDaysName, colorDays } = require("./utils/helper");
+			const { rowDataToMapMonth, createDays, createDaysName, formatDays } = require("./utils/helper");
 			const { daysInMonth, getWeeksNb, dayNames } = require("date/date");
 
 			// Clear the display div
@@ -60,9 +60,9 @@ define([
 			// var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
 
 			// get data or day number
-			const isDayNb = getConfigVar('isDayNb', true) === "true";
-			const isSundayGray = getConfigVar('sundayGray', false) === "true";
-			const isGreaterBetter = getConfigVar('isGreaterBetter', true) === "true";
+			const isDayNb = getConfigVar('isDayNb', "true") == "true" ;
+			const isSundayGray = getConfigVar('sundayGray', "false") === "true";
+			const isGreaterBetter = getConfigVar('isGreaterBetter', "true") === "true";
 
 			const root = document.querySelector(":root");
 			root.style.setProperty("--critical-color", criticalColor);
@@ -123,7 +123,7 @@ define([
 
 				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray);
 
-				colorDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter);
+				formatDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter);
 
 				// Filter the data to remove the empty values
 				const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);

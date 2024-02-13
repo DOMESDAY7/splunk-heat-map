@@ -92,7 +92,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 					return config[this.getPropertyNamespaceInfo().propertyNamespace + string] || defaultValue;
 				}
 
-				const { rowDataToMapMonth, createDays, createDaysName, colorDays } = __webpack_require__(5);
+				const { rowDataToMapMonth, createDays, createDaysName, formatDays } = __webpack_require__(5);
 				const { daysInMonth, getWeeksNb, dayNames } = __webpack_require__(6);
 
 				// Clear the display div
@@ -106,9 +106,9 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 				// var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
 
 				// get data or day number
-				const isDayNb = getConfigVar('isDayNb', true) === "true";
-				const isSundayGray = getConfigVar('sundayGray', false) === "true";
-				const isGreaterBetter = getConfigVar('isGreaterBetter', true) === "true";
+				const isDayNb = getConfigVar('isDayNb', "true") == "true" ;
+				const isSundayGray = getConfigVar('sundayGray', "false") === "true";
+				const isGreaterBetter = getConfigVar('isGreaterBetter', "true") === "true";
 
 				const root = document.querySelector(":root");
 				root.style.setProperty("--critical-color", criticalColor);
@@ -169,7 +169,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 
 					createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray);
 
-					colorDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter);
+					formatDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter);
 
 					// Filter the data to remove the empty values
 					const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
@@ -12242,7 +12242,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	 * @param {HTMLDivElement} monthContainer 
 	 * @returns void
 	 */
-	function colorDays(tabData, monthContainer, isDayNb = false, isSundayGray = false, isGreaterBetter = true) {
+	function formatDays(tabData, monthContainer, isDayNb = true, isSundayGray = false, isGreaterBetter = true) {
 	    const daysMap = new Map(tabData.map((item) => {
 	        const date = new Date(item._time);
 	        // Validate the date to ensure it exists
@@ -12260,7 +12260,6 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	            if (isSundayGray && dayElement.classList.contains("sunday")) {
 	                continue;
 	            }
-	            console.log(isGreaterBetter)
 	            if (!isGreaterBetter) {
 	                if (value <= 0 && value >= threshold_critical) {
 	                    dayElement.classList.add("critical");
@@ -12290,7 +12289,7 @@ define(["api/SplunkVisualizationBase","api/SplunkVisualizationUtils"], function(
 	    rowDataToMapMonth,
 	    createDays,
 	    createDaysName,
-	    colorDays
+	    formatDays
 	}
 
 /***/ }),

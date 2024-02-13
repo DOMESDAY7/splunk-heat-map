@@ -1,4 +1,4 @@
-const { rowDataToMapMonth, createDays, createDaysName, colorDays } = require('./helper');
+const { rowDataToMapMonth, createDays, createDaysName, formatDays } = require('./helper');
 const { JSDOM } = require('jsdom');
 const { daysInMonth } = require('../date/date');
 
@@ -210,7 +210,7 @@ describe("rowDataToTabMonth + createDays + createDaysName", () => {
 
 });
 
-describe('colorDays', () => {
+describe('formatDays', () => {
     let container;
     let tabMonth;
     let dayNames;
@@ -240,7 +240,7 @@ describe('colorDays', () => {
     });
 
     test('should correctly color days based on thresholds', () => {
-        colorDays(tabMonth.get('1-2022'), container);
+        formatDays(tabMonth.get('1-2022'), container);
 
         const dayElements = container.querySelectorAll('.day');
 
@@ -253,7 +253,7 @@ describe('colorDays', () => {
     });
 
     test('Empty data set', () => {
-        colorDays([], container);
+        formatDays([], container);
         const dayElements = container.querySelectorAll('.day');
         // Expect all days to not have any threshold class
         dayElements.forEach(dayElement => {
@@ -264,7 +264,7 @@ describe('colorDays', () => {
     });
 
     test('Days beyond data range', () => {
-        // Assuming colorDays is called with a dataset that doesn't cover all days
+        // Assuming formatDays is called with a dataset that doesn't cover all days
         // This case assumes setup from beforeEach is appropriate
         const dayElements = container.querySelectorAll('.day');
         expect(dayElements.length).toBeGreaterThan(tabMonth.get('1-2022').length);
@@ -274,7 +274,7 @@ describe('colorDays', () => {
     test('Invalid date format in data', () => {
         // Add a test case with invalid date format
         expect(() => {
-            colorDays([{ _time: 'invalid-date', value: 50, threshold_critical: 95, threshold_moderate: 98 }], container);
+            formatDays([{ _time: 'invalid-date', value: 50, threshold_critical: 95, threshold_moderate: 98 }], container);
         }).toThrow();
     });
 
@@ -284,7 +284,7 @@ describe('colorDays', () => {
             { _time: '2022-01-06', value: 95, threshold_critical: 95, threshold_moderate: 98 }, // critical
             { _time: '2022-01-07', value: 98, threshold_critical: 95, threshold_moderate: 98 }, // moderate
         ];
-        colorDays(edgeCaseData, container);
+        formatDays(edgeCaseData, container);
 
         expect(container.querySelector('[data-day="6"]').classList.contains('critical')).toBe(true);
         expect(container.querySelector('[data-day="7"]').classList.contains('moderate')).toBe(true);
@@ -293,7 +293,7 @@ describe('colorDays', () => {
     test('Data for nonexistent days', () => {
         // Test with data for February 30th in a non-leap year
         expect(() => {
-            colorDays([{ _time: '2022-02-30', value: 50, threshold_critical: 95, threshold_moderate: 98 }], container);
+            formatDays([{ _time: '2022-02-30', value: 50, threshold_critical: 95, threshold_moderate: 98 }], container);
         }).toThrow();
     });
 
@@ -303,7 +303,7 @@ describe('colorDays', () => {
             { _time: '2022-01-08', value: 94, threshold_critical: 95, threshold_moderate: 98 }, // Should end up as critical due to the last entry
             { _time: '2022-01-08', value: 96, threshold_critical: 95, threshold_moderate: 98 }, // moderate
         ];
-        colorDays(multipleEntriesData, container);
+        formatDays(multipleEntriesData, container);
 
         expect(container.querySelector('[data-day="8"]').classList.contains('moderate')).toBe(true);
     });

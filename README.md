@@ -1,4 +1,5 @@
 # Calendar heat map custom Splunk vizualisation
+
 ![splunk-calendar-heat-map](https://github.com/DOMESDAY7/splunk-heat-map/assets/79838340/b1cd8f04-999b-48b4-baf6-da0f92791f16)
 
 ## Prerequisites
