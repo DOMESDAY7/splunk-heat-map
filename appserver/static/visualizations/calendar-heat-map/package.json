@@ -16,9 +16,8 @@
     "webpack": "^1.12.6"
   },
   "dependencies": {
-    "d3": "3.5",
     "jest": "^29.7.0",
-    "jquery": "^2.2.4",
+    "jquery": "^3.7.1",
     "underscore": "^1.13.6"
   }
 }

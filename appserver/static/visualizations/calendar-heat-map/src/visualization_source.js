@@ -53,9 +53,9 @@ define([
 			this.$el.empty();
 
 			// get color from the config
-			const criticalColor = getConfigVar('criticalColor', "#c05c5c");
-			const moderateColor = getConfigVar('moderateColor', "#c09a5c");
-			const normalColor = getConfigVar('normalColor', "#5cc05c");
+			const criticalColor = getConfigVar('criticalColor', "#DD0000");
+			const moderateColor = getConfigVar('moderateColor', "#cba700");
+			const normalColor = getConfigVar('normalColor', "#118832");
 
 			// var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
 
