@@ -4,7 +4,7 @@
     "title": "$${label}",
     "id": {
       "group": null,
-      "name": "heat-map",
+      "name": "calendar-heat-map",
       "version": "1.0.0"
     },
     "author": [
