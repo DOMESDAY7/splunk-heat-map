@@ -56,21 +56,23 @@ define([
 			const criticalColor = getConfigVar('criticalColor', "#DD0000");
 			const moderateColor = getConfigVar('moderateColor', "#cba700");
 			const normalColor = getConfigVar('normalColor', "#118832");
-
+			
 			// var noDataColor = config[this.getPropertyNamespaceInfo().propertyNamespace + 'noDataColor'] || "#c09a5c";
-
-			// get data or day number
+			
+			// get data or day number	
 			const isDayNb = getConfigVar('isDayNb', "true") == "true" ;
 			const isSundayGray = getConfigVar('sundayGray', "false") === "true";
 			const isGreaterBetter = getConfigVar('isGreaterBetter', "true") === "true";
+			const configAverageThresholdCritical = parseFloat(getConfigVar('averageThresholdCritical', "-1")) ;
+			const configAverageThresholdModerate = parseFloat(getConfigVar('averageThresholdModerate', "-1"));
+			const decimalNb = getConfigVar('decimalNb', "1");
+			const showPercentages = getConfigVar('showPercentages', "true") === "true";
 
 			const root = document.querySelector(":root");
 			root.style.setProperty("--critical-color", criticalColor);
 			root.style.setProperty("--moderate-color", moderateColor);
 			root.style.setProperty("--normal-color", normalColor);
 
-			// we configure the font size depending on what we want to display
-			root.style.setProperty("--day-font-size", !isDayNb ? "0.5rem" : "1rem");
 			// Check if data is empty
 			const tabMonth = rowDataToMapMonth(data);
 
@@ -123,24 +125,26 @@ define([
 
 				createDays(nbDaysInMonth, firstDayOfWeek, monthContainer, isSundayGray);
 
-				formatDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter);
+				formatDays(tabMonthData, monthContainer, isDayNb, isSundayGray, isGreaterBetter, decimalNb, showPercentages);
 
 				// Filter the data to remove the empty values
 				const tabMonthDataFiltered = tabMonthData.filter((el) => !!el.value);
 
 				const averagePerMonth = tabMonthDataFiltered.reduce((acc, { value }) => acc + value, 0) / tabMonthDataFiltered.length;
+				const averageThresholdCritical = tabMonthDataFiltered.reduce((acc, { threshold_critical }) => acc + threshold_critical, 0) / tabMonthDataFiltered.length;
+				const averageThresholdModerate = tabMonthDataFiltered.reduce((acc, { threshold_moderate }) => acc + threshold_moderate, 0) / tabMonthDataFiltered.length;
 
 				// create a div for the average value with the class "average"
 				let average = document.createElement("div");
 				average.classList.add("average");
 
-				const critical = config[this.getPropertyNamespaceInfo().propertyNamespace + 'critical'] || 98;
-				const moderate = config[this.getPropertyNamespaceInfo().propertyNamespace + 'moderate'] || 99;
+				const critical = averageThresholdCritical;
+				const moderate = averageThresholdModerate;
 
 				// set the color depending on the average value
 				if (averagePerMonth < critical) {
 					average.classList.add("critical");
-				} else if (critical < averagePerMonth < moderate) {
+				} else if (critical < averagePerMonth && averagePerMonth < moderate) {
 					average.classList.add("moderate");
 				} else {
 					average.classList.add("normal");
@@ -149,7 +153,11 @@ define([
 				let p = document.createElement("p");
 
 				p.classList.add("average-value");
-				p.textContent = averagePerMonth.toFixed(2) + "%";
+				if(showPercentages){
+					p.textContent = averagePerMonth.toFixed(decimalNb) + "%"
+				}else{
+					p.textContent = averagePerMonth.toFixed(decimalNb)
+				}
 				average.append(p);
 
 				// Append 

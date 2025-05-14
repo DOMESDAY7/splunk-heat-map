@@ -113,7 +113,7 @@ function createDaysName(dayNames, monthContainer) {
  * @param {HTMLDivElement} monthContainer 
  * @returns void
  */
-function formatDays(tabData, monthContainer, isDayNb = true, isSundayGray = false, isGreaterBetter = true) {
+function formatDays(tabData, monthContainer, isDayNb = true, isSundayGray = false, isGreaterBetter = true, decimalNb = 1, showPercentages=true) {
     const daysMap = new Map(tabData.map((item) => {
         const date = new Date(item._time);
         // Validate the date to ensure it exists
@@ -149,7 +149,13 @@ function formatDays(tabData, monthContainer, isDayNb = true, isSundayGray = fals
                 }
             }
             dayElement.setAttribute("data-tooltip", `day ${new Date(_time).getDate()} : ${value.toFixed(2)}%`);
-            if (!isDayNb) dayElement.textContent = value.toFixed(2) + "%";
+            if (!isDayNb) {
+                if(showPercentages){
+                    dayElement.textContent = value.toFixed(decimalNb) + "%"
+                }else{
+                    dayElement.textContent = value.toFixed(decimalNb)
+                }
+            }
 
         }
     }

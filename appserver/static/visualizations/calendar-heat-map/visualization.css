@@ -2,7 +2,7 @@
   --critical-color: #c05c5c;
   --moderate-color: #c09a5c;
   --normal-color: #5cc05c;
-  --day-font-size: 1rem;
+  --day-font-size: 0.5rem;
   --bg-sunday: #6b6b6b;
 }
 .global-container {

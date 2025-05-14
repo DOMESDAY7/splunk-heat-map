@@ -3,33 +3,50 @@
     <splunk-radio-input name="{{VIZ_NAMESPACE}}.isDayNb">
       <option value="false" label="data">Data</option>
       <option value="true" label="day number">Day number</option>
-    </splunk-radio-input> </splunk-control-group
-  ><br />
+    </splunk-radio-input>
+  </splunk-control-group>
+
   <splunk-control-group label="Turn Sunday gray" help=" ">
     <splunk-radio-input name="{{VIZ_NAMESPACE}}.sundayGray">
       <option value="false" label="No" default="true">No</option>
       <option value="true" label="Yes">Yes</option>
-    </splunk-radio-input></splunk-control-group
-  ><br />
+    </splunk-radio-input>
+  </splunk-control-group>
+
+  <splunk-control-group label="Show percentages" help=" ">
+    <splunk-radio-input name="{{VIZ_NAMESPACE}}.showPercentages">
+      <option value="false" label="No">No</option>
+      <option value="true" label="Yes" default="true">Yes</option>
+    </splunk-radio-input>
+  </splunk-control-group>
+
+
+  <splunk-control-group label="Number of decimal" help=" ">
+    <splunk-text-input name="{{VIZ_NAMESPACE}}.decimalNb" type="number" value="1"></splunk-text-input>
+  </splunk-control-group>
+
+<!-- 
+  <splunk-control-group label="Threshold critical for average" help=" ">
+    <splunk-text-input name="{{VIZ_NAMESPACE}}.averageThresholdCritical" type="number" value="00"></splunk-text-input>
+  </splunk-control-group>
+
+
+  <splunk-control-group label="Threshold moderate for average" help=" ">
+    <splunk-text-input name="{{VIZ_NAMESPACE}}.averageThresholdModerate" type="number" value="00"></splunk-text-input>
+  </splunk-control-group> -->
+
 </form>
 
 <form class="splunk-formatter-section" section-label="Colors">
   <splunk-control-group label="Normal Colour" help=" ">
-    <splunk-color-picker
-      name="{{VIZ_NAMESPACE}}.normalColor"
-      value="#118832"
-    ></splunk-color-picker>
+    <splunk-color-picker name="{{VIZ_NAMESPACE}}.normalColor" value="#118832"></splunk-color-picker>
   </splunk-control-group>
   <splunk-control-group label="Moderate Colour" help=" ">
-    <splunk-color-picker
-      name="{{VIZ_NAMESPACE}}.moderateColor"
-      value="#cba700"
-    ></splunk-color-picker
-  ></splunk-control-group>
+    <splunk-color-picker name="{{VIZ_NAMESPACE}}.moderateColor"
+      value="#cba700"></splunk-color-picker></splunk-control-group>
   <splunk-control-group label="Critical Colour" help=" ">
     <splunk-color-picker name="{{VIZ_NAMESPACE}}.criticalColor" value="#DD0000">
-    </splunk-color-picker
-  ></splunk-control-group>
+    </splunk-color-picker></splunk-control-group>
 
   <splunk-control-group label="Inverse the threshold" help=" ">
     <splunk-radio-input name="{{VIZ_NAMESPACE}}.isGreaterBetter">
