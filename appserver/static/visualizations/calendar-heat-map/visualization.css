@@ -1,0 +1,136 @@
+:root {
+  --critical-color: #c05c5c;
+  --moderate-color: #c09a5c;
+  --normal-color: #5cc05c;
+  --day-off-color: #868e96;
+  --day-font-size: 0.5rem;
+  --bg-sunday: #6b6b6b;
+}
+
+.day-off{
+  background-image: 
+        linear-gradient(45deg, var(--day-off-color) 25%, transparent 25%, transparent 75%, var(--day-off-color)  75%, var(--day-off-color)), 
+        linear-gradient(45deg, var(--day-off-color) 25%, transparent 25%, transparent 75%, var(--day-off-color) 75%, var(--day-off-color));
+    background-size: 4px 4px, 4px 4px, 100% 100%;    
+    background-position: 0px 0px, 2px 2px, 0px 0px;
+  color: white !important; 
+}
+
+.global-container {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: start;
+  align-items: start;
+  margin: auto;
+  gap: 2rem;
+  height: 100%;
+  position: relative;
+}
+
+.average {
+  height: 12rem;
+  width: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 1px solid gray;
+  grid-area: average;
+  justify-self: center;
+  align-self: center;
+}
+
+.average-value {
+  transform: rotate(-90deg);
+}
+
+.sunday{
+  background-color: var(--bg-sunday);
+  color: gray;
+}
+
+.container-month {
+  display: grid;
+  grid-template-columns: repeat(8, 1.75rem);
+  grid-template-rows: repeat(6, 1.75rem);
+  width: fit-content;
+  height: 100%;
+  grid-area: monthGrid;
+}
+
+.day {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border: 0.5px solid gray;
+  color: gray;
+  cursor: pointer;
+  font-size: var(--day-font-size);
+  /* aspect-ratio: 1/1; */
+}
+
+.day-name {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.5rem;
+}
+
+.week {
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 0.5rem;
+}
+
+.critical {
+  background-color: var(--critical-color);
+  color: white;
+}
+
+.moderate {
+  background-color: var(--moderate-color);
+  color: white;
+}
+
+.normal {
+  background-color: var(--normal-color);
+  color: white;
+}
+
+.month-name {
+  display: flex;
+  justify-content: center;
+  align-items: end;
+  text-transform: capitalize;
+  justify-self: center;
+  align-self: center;
+  width: 100%;
+  margin: 0;
+  grid-area: monthName;
+}
+
+.global-container-month {
+  display: grid;
+  grid-template-areas:
+    "monthName monthName monthName"
+    "monthGrid monthGrid average"
+    "monthGrid monthGrid average";
+  gap: 0 1rem;
+}
+
+.tooltip-chm {
+  position: absolute;
+  /* display: none; */
+  background-color: rgba(128, 128, 128, 0.7);
+  backdrop-filter: blur(5px);
+  border: 1px solid grey;
+  padding: 0.5rem;
+  z-index: 99999;
+  /* transition: all 0.1s ease; */
+}

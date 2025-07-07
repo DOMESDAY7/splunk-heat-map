@@ -1,0 +1,24 @@
+{
+  "name": "calendar-heatmap",
+  "version": "1.0.0",
+  "description": "Visualization app template. Put a description here.",
+  "main": "visualization.js",
+  "scripts": {
+    "build": "%SPLUNK_HOME%/bin/splunk cmd node ./node_modules/webpack/bin/webpack.js",
+    "devbuild": "$SPLUNK_HOME/bin/splunk cmd node ./node_modules/webpack/bin/webpack.js --progress",
+    "watch": "$SPLUNK_HOME/bin/splunk cmd node ./node_modules/webpack/bin/webpack.js -d --watch --progress",
+    "test": "jest --verbose"
+  },
+  "author": "Splunk",
+  "license": "MIT",
+  "devDependencies": {
+    "jsdom": "^24.0.0",
+    "webpack": "^1.12.6"
+  },
+  "dependencies": {
+    "calendar-heatmap": "file:",
+    "jest": "^29.7.0",
+    "jquery": "^3.7.1",
+    "underscore": "^1.13.6"
+  }
+}
